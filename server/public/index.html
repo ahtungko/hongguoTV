@@ -48,9 +48,6 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Segoe UI", Roboto, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      text-rendering: optimizeLegibility;
       background-color: var(--bg-base);
       background-image: radial-gradient(circle at 50% 0%, rgba(255, 45, 85, 0.08), transparent 45%);
       color: var(--text-main);
@@ -62,81 +59,74 @@
       padding-bottom: calc(65px + var(--safe-bottom));
     }
 
-    /* 顶部导航 (紧凑极简，消除过高与模糊) */
+    /* 顶部导航 */
     header {
       position: sticky;
       top: 0;
       z-index: 60;
-      background: #090d16;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 8px 14px;
-      min-height: 48px;
+      background: rgba(7, 10, 18, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: max(12px, var(--safe-top)) 16px 12px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 12px;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 7px;
-      font-size: 1.05rem;
+      gap: 8px;
+      font-size: 1.15rem;
       font-weight: 800;
       color: #fff;
       cursor: pointer;
       text-decoration: none;
-      letter-spacing: -0.3px;
-      flex-shrink: 0;
+      letter-spacing: -0.5px;
     }
 
     .brand-icon {
-      width: 26px;
-      height: 26px;
-      border-radius: 7px;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
       background: var(--primary-gradient);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 6px var(--primary-glow);
-    }
-
-    .brand-icon svg {
-      width: 14px;
-      height: 14px;
+      box-shadow: 0 4px 12px var(--primary-glow);
     }
 
     .search-box-wrap {
       flex: 1;
-      min-width: 0;
-      max-width: 440px;
+      max-width: 460px;
       position: relative;
     }
 
     .search-bar {
       display: flex;
       align-items: center;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
       border-radius: 999px;
-      padding: 5px 12px;
-      transition: all 0.2s ease;
+      padding: 6px 14px;
+      transition: all 0.25s ease;
     }
 
     .search-bar:focus-within {
-      background: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.1);
       border-color: var(--primary);
-      box-shadow: 0 0 0 2px rgba(255, 45, 85, 0.25);
+      box-shadow: 0 0 0 3px rgba(255, 45, 85, 0.2);
     }
 
     .search-bar input {
       flex: 1;
-      min-width: 0;
       background: transparent;
       border: none;
       outline: none;
       color: #fff;
-      font-size: 0.86rem;
+      font-size: 0.88rem;
       padding: 2px 6px;
     }
 
@@ -487,39 +477,6 @@
       }
       .mobile-tab-bar {
         display: flex;
-        background: #090d16;
-        border-top: 1px solid rgba(255, 255, 255, 0.12);
-        height: 52px;
-      }
-      header {
-        background: #090d16;
-        padding: 6px 12px;
-        min-height: 44px;
-        gap: 8px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-      }
-      .brand {
-        gap: 6px;
-      }
-      .brand-icon {
-        width: 24px;
-        height: 24px;
-      }
-      .brand-icon svg {
-        width: 12px;
-        height: 12px;
-      }
-      .brand span {
-        font-size: 0.95rem;
-      }
-      .search-bar {
-        padding: 4px 10px;
-      }
-      .search-bar input {
-        font-size: 0.8rem;
-      }
-      .player-top-bar .player-fav-btn {
-        display: none;
       }
     }
 
@@ -570,35 +527,34 @@
       display: flex;
     }
 
-    /* 播放器顶部条 (极简轻薄，消除过高与暗色模糊遮罩) */
+    /* 播放器顶部条 */
     .player-top-bar {
       position: absolute;
       top: 0;
       left: 0;
       right: 0;
       z-index: 25;
-      padding: 10px 14px;
-      min-height: 44px;
-      background: linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, transparent 100%);
+      padding: max(12px, var(--safe-top)) 16px 12px 16px;
+      background: linear-gradient(180deg, rgba(5, 7, 13, 0.9) 0%, rgba(5, 7, 13, 0.4) 70%, transparent 100%);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 12px;
       pointer-events: auto;
-      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .player-back-btn {
-      background: rgba(0, 0, 0, 0.45);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       color: #fff;
-      width: 32px;
-      height: 32px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      backdrop-filter: blur(10px);
       transition: background 0.2s;
     }
 
@@ -614,18 +570,19 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.95);
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
     }
 
     .player-fav-btn {
       background: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       color: #fff;
       font-size: 0.82rem;
       font-weight: 600;
       padding: 6px 14px;
       border-radius: 999px;
       cursor: pointer;
+      backdrop-filter: blur(10px);
       display: flex;
       align-items: center;
       gap: 4px;
@@ -777,140 +734,89 @@
       transition: width 0.1s linear;
     }
 
-    /* 抖音经典：右侧悬浮轻量操作列 (不占中央字幕空间) */
-    .player-right-sidebar {
+    /* 播放器底部浮动控制栏 (Douyin/ShortMax 风格) */
+    .player-floating-bar {
       position: absolute;
-      right: 12px;
-      bottom: calc(var(--safe-bottom) + 20px);
+      bottom: max(16px, var(--safe-bottom));
+      left: 16px;
+      right: 16px;
+      max-width: 520px;
+      margin: 0 auto;
       z-index: 25;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 14px;
+      justify-content: space-between;
+      gap: 8px;
       pointer-events: auto;
-      transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .sidebar-action-btn {
+    .float-ctrl-pill {
+      background: rgba(15, 21, 35, 0.78);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    .ctrl-action-btn {
       background: transparent;
       border: none;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 3px;
-      cursor: pointer;
-      padding: 0;
-      outline: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .sidebar-icon-circle {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: rgba(18, 24, 38, 0.68);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(255, 255, 255, 0.16);
       color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .sidebar-icon-circle.text-circle {
-      font-size: 0.76rem;
-      font-weight: 800;
-      color: var(--primary);
-      letter-spacing: -0.3px;
-    }
-
-    .sidebar-action-btn:active .sidebar-icon-circle {
-      transform: scale(0.88);
-    }
-
-    .sidebar-action-btn.favorited .sidebar-icon-circle {
-      background: rgba(255, 45, 85, 0.25);
-      border-color: rgba(255, 45, 85, 0.6);
-      color: #ff2d55;
-      box-shadow: 0 0 16px rgba(255, 45, 85, 0.45);
-    }
-
-    .sidebar-action-btn.favorited svg {
-      fill: #ff2d55;
-      stroke: #ff2d55;
-    }
-
-    .sidebar-label {
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: rgba(255, 255, 255, 0.95);
-      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
-    }
-
-    /* 左下角短剧信息 (微字投影，绝不遮挡居中字幕) */
-    .player-bottom-info {
-      position: absolute;
-      left: 14px;
-      bottom: calc(var(--safe-bottom) + 14px);
-      max-width: calc(100% - 80px);
-      z-index: 24;
-      pointer-events: auto;
+      font-size: 0.8rem;
+      font-weight: 600;
       cursor: pointer;
       display: flex;
-      flex-direction: column;
+      align-items: center;
       gap: 4px;
-      transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      padding: 2px 6px;
+      border-radius: 6px;
+      transition: color 0.15s;
     }
 
-    .drama-meta-tag {
-      align-self: flex-start;
-      font-size: 0.68rem;
-      font-weight: 700;
-      color: #ff3b69;
-      background: rgba(255, 45, 85, 0.16);
-      border: 1px solid rgba(255, 45, 85, 0.35);
-      padding: 1px 7px;
-      border-radius: 4px;
-      backdrop-filter: blur(8px);
+    .ctrl-action-btn:hover {
+      color: var(--primary);
     }
 
-    .drama-meta-title {
-      font-size: 0.96rem;
-      font-weight: 800;
+    .speed-select {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
       color: #fff;
-      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.95);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      outline: none;
+      cursor: pointer;
     }
 
-    .drama-meta-sub {
-      font-size: 0.76rem;
-      color: rgba(255, 255, 255, 0.82);
-      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+    .speed-select option {
+      background: #111827;
+      color: #fff;
     }
 
-    /* HUD 自动隐藏 (沉浸模式，播放时淡出，完全露出画面与字幕) */
-    .player-view.hud-hidden .player-top-bar {
-      opacity: 0;
-      transform: translateY(-100%);
-      pointer-events: none;
+    .btn-open-drawer {
+      background: var(--primary-gradient);
+      border: none;
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 999px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 16px var(--primary-glow);
+      transition: transform 0.15s;
     }
 
-    .player-view.hud-hidden .player-right-sidebar {
-      opacity: 0;
-      transform: translateX(60px);
-      pointer-events: none;
-    }
-
-    .player-view.hud-hidden .player-bottom-info {
-      opacity: 0;
-      transform: translateY(20px);
-      pointer-events: none;
+    .btn-open-drawer:active {
+      transform: scale(0.95);
     }
 
     /* 抖音同款：选集半屏抽屉 (Bottom Sheet Drawer) */
@@ -1301,7 +1207,7 @@
 
     <div class="search-box-wrap">
       <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="搜索短剧名、题材..." onkeydown="if(event.key==='Enter') app.search()">
+        <input type="text" id="searchInput" placeholder="搜索短剧名、题材、关键词..." onkeydown="if(event.key==='Enter') app.search()">
         <button onclick="app.search()" title="搜索">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </button>
@@ -1395,43 +1301,22 @@
         </div>
       </div>
 
-      <!-- 左下角短剧信息 (微字投影，绝不遮挡居中字幕，点击打开选集) -->
-      <div class="player-bottom-info" id="playerBottomInfo" onclick="app.openDrawer()" title="点击打开选集">
-        <div class="drama-meta-tag">短剧 · <span id="playerBottomTag">精彩热播</span></div>
-        <div class="drama-meta-title" id="playerBottomDramaTitle">剧名加载中</div>
-        <div class="drama-meta-sub" id="playerBottomDramaSub">第 1 集 · 点击选集 · 上下滑动切集</div>
-      </div>
+      <!-- 底部浮动控制栏 -->
+      <div class="player-floating-bar">
+        <div class="float-ctrl-pill">
+          <button class="ctrl-action-btn" onclick="app.playPrevEpisode()" title="上一集">⏮️</button>
+          <select class="speed-select" onchange="app.setSpeed(parseFloat(this.value))" title="倍速">
+            <option value="1.0" selected>1.0x</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2.0">2.0x</option>
+          </select>
+          <button class="ctrl-action-btn" onclick="app.playNextEpisode()" title="下一集">⏭️</button>
+        </div>
 
-      <!-- 抖音经典：右侧悬浮轻量操作列 (不占中央字幕空间) -->
-      <div class="player-right-sidebar" id="playerRightSidebar">
-        <!-- 追剧/收藏 -->
-        <button class="sidebar-action-btn" id="sidebarFavBtn" onclick="app.toggleFavorite()" title="追剧/收藏">
-          <div class="sidebar-icon-circle">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          </div>
-          <span class="sidebar-label" id="sidebarFavLabel">追剧</span>
-        </button>
-
-        <!-- 选集抽屉 -->
-        <button class="sidebar-action-btn" onclick="app.openDrawer()" title="打开选集抽屉">
-          <div class="sidebar-icon-circle">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-          </div>
-          <span class="sidebar-label" id="sidebarEpisodeLabel">选集</span>
-        </button>
-
-        <!-- 倍速快速切换 (一键循环: 1.0 -> 1.25 -> 1.5 -> 2.0) -->
-        <button class="sidebar-action-btn" onclick="app.cycleSpeed()" title="快速切换倍速">
-          <div class="sidebar-icon-circle text-circle" id="sidebarSpeedVal">1.0x</div>
-          <span class="sidebar-label">倍速</span>
-        </button>
-
-        <!-- 画面比例 (铺满全屏 / 适应比例) -->
-        <button class="sidebar-action-btn" onclick="app.toggleVideoFit()" title="切换画面铺满/适应">
-          <div class="sidebar-icon-circle" id="sidebarFitCircle">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-          </div>
-          <span class="sidebar-label" id="sidebarFitLabel">适应</span>
+        <button class="btn-open-drawer" onclick="app.openDrawer()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          <span>选集</span>
         </button>
       </div>
     </div>
@@ -1470,7 +1355,6 @@
       currentEpisodeIndex: 0,
       rangeSize: 30,
       currentRangeIndex: 0,
-      hudTimer: null,
 
       // 初始化
       async init() {
@@ -1621,23 +1505,11 @@
         this.updateFavButton();
       },
       updateFavButton() {
-        if (!this.currentSeries) return;
+        const btn = document.getElementById('playerFavBtn');
+        if (!this.currentSeries || !btn) return;
         const fav = this.isFavorited(this.currentSeries.id);
-
-        const topBtn = document.getElementById('playerFavBtn');
-        if (topBtn) {
-          topBtn.innerHTML = fav ? '<span>❤️ 已收藏</span>' : '<span>🤍 收藏</span>';
-          topBtn.classList.toggle('favorited', fav);
-        }
-
-        const sideBtn = document.getElementById('sidebarFavBtn');
-        const sideLabel = document.getElementById('sidebarFavLabel');
-        if (sideBtn) {
-          sideBtn.classList.toggle('favorited', fav);
-        }
-        if (sideLabel) {
-          sideLabel.textContent = fav ? '已追' : '追剧';
-        }
+        btn.innerHTML = fav ? '<span>❤️ 已收藏</span>' : '<span>🤍 收藏</span>';
+        btn.classList.toggle('favorited', fav);
       },
 
       showHistory() {
@@ -1816,23 +1688,6 @@
 
         document.getElementById('playerCurrentDramaTitle').textContent = `${this.currentSeries.title} · ${episode.title || `第 ${index + 1} 集`}`;
 
-        // 联动左下角短剧信息 (微字投影，绝不遮挡居中字幕)
-        const bottomTitle = document.getElementById('playerBottomDramaTitle');
-        if (bottomTitle) bottomTitle.textContent = this.currentSeries.title;
-        const bottomSub = document.getElementById('playerBottomDramaSub');
-        if (bottomSub) bottomSub.textContent = `${episode.title || `第 ${index + 1} 集`} / 共 ${this.currentEpisodes.length} 集 · 点击选集 · 上下滑切集`;
-        const bottomTag = document.getElementById('playerBottomTag');
-        if (bottomTag) bottomTag.textContent = this.currentSeries.badge || (this.currentSeries.tags ? this.currentSeries.tags.split(' ')[0] : '短剧');
-
-        // 联动右侧悬浮栏集数显示与倍速
-        const epLabel = document.getElementById('sidebarEpisodeLabel');
-        if (epLabel) epLabel.textContent = `第${index + 1}集`;
-        const speedVal = document.getElementById('sidebarSpeedVal');
-        if (speedVal) speedVal.textContent = `${video.playbackRate || 1.0}x`;
-
-        this.updateFavButton();
-        this.resetHudTimer();
-
         // 重新高亮抽屉按钮
         document.querySelectorAll('.ep-num-btn').forEach((btn, i) => {
           const globalIdx = this.currentRangeIndex * this.rangeSize + i;
@@ -1941,8 +1796,7 @@
 
         // 触摸开始
         body.addEventListener('touchstart', (e) => {
-          this.resetHudTimer();
-          if (e.target.closest('.player-right-sidebar') || e.target.closest('.player-top-bar') || e.target.closest('.player-bottom-info') || e.target.closest('.episode-drawer')) return;
+          if (e.target.closest('.player-floating-bar') || e.target.closest('.player-top-bar') || e.target.closest('.episode-drawer')) return;
           if (e.touches.length !== 1) return;
 
           startY = e.touches[0].clientY;
@@ -1951,11 +1805,6 @@
           isSwiping = true;
           wrapper.style.transition = 'none';
         }, { passive: true });
-
-        // PC 鼠标移动唤醒控制栏
-        body.addEventListener('mousemove', () => {
-          this.resetHudTimer();
-        });
 
         // 触摸滑动跟踪
         body.addEventListener('touchmove', (e) => {
@@ -2090,15 +1939,12 @@
 
       // 选集半屏抽屉控制
       openDrawer() {
-        clearTimeout(this.hudTimer);
-        document.getElementById('playerView')?.classList.remove('hud-hidden');
         document.getElementById('drawerOverlay').classList.add('active');
         document.getElementById('episodeDrawer').classList.add('active');
       },
       closeDrawer() {
         document.getElementById('drawerOverlay').classList.remove('active');
         document.getElementById('episodeDrawer').classList.remove('active');
-        this.resetHudTimer();
       },
 
       renderDrawerTabs() {
@@ -2150,15 +1996,6 @@
         // 自动连播
         video.addEventListener('ended', () => {
           this.playNextEpisode();
-        });
-
-        // 播放与暂停联动 HUD 自动隐藏
-        video.addEventListener('play', () => {
-          this.resetHudTimer();
-        });
-        video.addEventListener('pause', () => {
-          clearTimeout(this.hudTimer);
-          document.getElementById('playerView')?.classList.remove('hud-hidden');
         });
 
         // 微进度条平滑推进与历史保存
@@ -2213,56 +2050,10 @@
         });
       },
 
-      // 一键循环切换倍速 (1.0 -> 1.25 -> 1.5 -> 2.0)
-      cycleSpeed() {
-        const speeds = [1.0, 1.25, 1.5, 2.0];
-        const video = this.getVideo();
-        const current = video ? video.playbackRate : 1.0;
-        let idx = speeds.indexOf(current);
-        if (idx === -1) idx = 0;
-        const nextSpeed = speeds[(idx + 1) % speeds.length];
-        if (video) video.playbackRate = nextSpeed;
-        const speedVal = document.getElementById('sidebarSpeedVal');
-        if (speedVal) speedVal.textContent = `${nextSpeed}x`;
-        this.toast(`⚡ 倍速已设为 ${nextSpeed}x`);
-        this.resetHudTimer();
-      },
-
-      // 一键切换画面比例 (适应居中 contain vs 撑满全屏 cover)
-      toggleVideoFit() {
-        const video = this.getVideo();
-        if (!video) return;
-        const isCover = video.classList.toggle('fit-cover');
-        const fitLabel = document.getElementById('sidebarFitLabel');
-        if (fitLabel) fitLabel.textContent = isCover ? '撑满' : '适应';
-        this.toast(isCover ? '📐 画面比例: 撑满全屏' : '📐 画面比例: 适应原比');
-        this.resetHudTimer();
-      },
-
-      // 重置 HUD 沉浸计时器 (播放中无操作 3.2 秒淡出，完全不挡字幕)
-      resetHudTimer() {
-        const player = document.getElementById('playerView');
-        if (!player || !player.classList.contains('active')) return;
-        player.classList.remove('hud-hidden');
-        clearTimeout(this.hudTimer);
-        const video = this.getVideo();
-        if (video && !video.paused) {
-          this.hudTimer = setTimeout(() => {
-            const drawer = document.getElementById('episodeDrawer');
-            if (!drawer || !drawer.classList.contains('active')) {
-              player.classList.add('hud-hidden');
-            }
-          }, 3200);
-        }
-      },
-
       setSpeed(rate) {
         const video = this.getVideo();
         if (video) video.playbackRate = rate;
-        const speedVal = document.getElementById('sidebarSpeedVal');
-        if (speedVal) speedVal.textContent = `${rate}x`;
         this.toast(`倍速已设为 ${rate}x`);
-        this.resetHudTimer();
       },
 
       closePlayer() {
@@ -2271,12 +2062,7 @@
           video.pause();
           video.src = '';
         }
-        clearTimeout(this.hudTimer);
-        const player = document.getElementById('playerView');
-        if (player) {
-          player.classList.remove('active');
-          player.classList.remove('hud-hidden');
-        }
+        document.getElementById('playerView').classList.remove('active');
         this.closeDrawer();
         document.body.style.overflow = '';
       },
