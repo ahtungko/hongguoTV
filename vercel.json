@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "regions": ["sin1"],
+  "functions": {
+    "api/index.mjs": {
+      "maxDuration": 60,
+      "includeFiles": "server/**"
+    }
+  },
+  "rewrites": [
+    { "source": "/public/(.*)", "destination": "/$1" },
+    { "source": "/api/(.*)", "destination": "/api/index.mjs" },
+    { "source": "/health", "destination": "/api/index.mjs" }
+  ]
+}

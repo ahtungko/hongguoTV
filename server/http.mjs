@@ -1,11 +1,13 @@
 import http from "node:http";
 import fs from "node:fs/promises";
+import fsSync from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { timingSafeEqual } from "node:crypto";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const PUBLIC_DIR = path.resolve(__dirname, "public");
+const rootPublic = path.resolve(__dirname, "../public");
+const PUBLIC_DIR = fsSync.existsSync(rootPublic) ? rootPublic : path.resolve(__dirname, "public");
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -38,9 +40,9 @@ export function byteRange(value, total) {
     : null;
 }
 
-export function createServer(provider, token = "") {
+export function createRequestHandler(provider, token = "") {
   let activeStreams = 0;
-  return http.createServer(async (req, res) => {
+  return async (req, res) => {
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
@@ -240,5 +242,10 @@ export function createServer(provider, token = "") {
           error: "内容源暂不可用，请稍后重试；服务连通不代表内容源可用",
         });
     }
-  });
+  };
 }
+
+export function createServer(provider, token = "") {
+  return http.createServer(createRequestHandler(provider, token));
+}
+
