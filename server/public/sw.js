@@ -1,5 +1,5 @@
 // PWA Service Worker - HongGuoTV
-const CACHE_NAME = 'hongguo-shell-v2';
+const CACHE_NAME = 'hongguo-shell-v2.1';
 const ASSETS = [
   '/',
   '/manifest.json',
@@ -9,7 +9,7 @@ const ASSETS = [
 self.addEventListener('install', (e) => {
   self.skipWaiting();
   e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)).catch(() => {})
   );
 });
 
@@ -28,8 +28,21 @@ self.addEventListener('message', (event) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  // Only handle GET, bypass all API routes and streaming chunks
-  if (e.request.url.includes('/api/') || e.request.method !== 'GET') return;
+  // Only handle GET requests
+  if (e.request.method !== 'GET') return;
+
+  // Ignore non-http/https protocols (e.g. chrome-extension://, moz-extension://)
+  if (!e.request.url.startsWith('http://') && !e.request.url.startsWith('https://')) return;
+
+  let url;
+  try {
+    url = new URL(e.request.url);
+  } catch {
+    return;
+  }
+
+  // Only handle same-origin requests; bypass third-party requests, extensions, and all /api/ endpoints
+  if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return;
 
   // Network-First for HTML/page navigation, fallback to cache when offline
   if (e.request.mode === 'navigate' || e.request.destination === 'document') {
@@ -38,7 +51,7 @@ self.addEventListener('fetch', (e) => {
         .then((res) => {
           if (res && res.status === 200) {
             const clone = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
+            caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone)).catch(() => {});
           }
           return res;
         })
@@ -47,13 +60,13 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Network-First for static shell assets with cache update
+  // Network-First for same-origin static shell assets with cache update
   e.respondWith(
     fetch(e.request)
       .then((res) => {
         if (res && res.status === 200) {
           const clone = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
+          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone)).catch(() => {});
         }
         return res;
       })
