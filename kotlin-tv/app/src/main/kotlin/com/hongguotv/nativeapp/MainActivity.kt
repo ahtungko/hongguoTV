@@ -145,10 +145,21 @@ class MainActivity: Activity() {
     private var video: RemoteVideo?=null
     private var playbackReady=false
     private var pausedForLifecycle=false
-    private lateinit var hud: LinearLayout
+    private lateinit var hud: FrameLayout
     private lateinit var playbackText: TextView
     private lateinit var progressBar: ProgressBar
     private lateinit var controls: LinearLayout
+    private var sidebarSpeedText: TextView?=null
+    private var sidebarEpisodeText: TextView?=null
+    private var sidebarAspectText: TextView?=null
+    private var bottomDramaSub: TextView?=null
+    private var touchHintView: TextView?=null
+    private var centerPlayBadge: TextView?=null
+    private var touchStartY=0f
+    private var touchStartX=0f
+    private var isSwipingVertical=false
+    private var isSwipingHorizontal=false
+    private var touchLastTapTime=0L
     private var panel=false
     private var transportPlay: TextView?=null
     private var sleepButton: TextView?=null
@@ -175,7 +186,7 @@ class MainActivity: Activity() {
     private fun dp(value: Number)=(value.toFloat()*resources.displayMetrics.density).toInt()
     private fun widthDp()=resources.displayMetrics.widthPixels/resources.displayMetrics.density
     private fun lp(w: Int=LinearLayout.LayoutParams.MATCH_PARENT,h: Int=LinearLayout.LayoutParams.WRAP_CONTENT)=LinearLayout.LayoutParams(w,h)
-    private fun rounded(color: Int,border: Int=Color.TRANSPARENT)=TvStyle.shape(this,color,border)
+    private fun rounded(color: Int,border: Int=Color.TRANSPARENT,radius: Int=10)=TvStyle.shape(this,color,border,radius)
     private fun text(value: String,size: Float=16f,color: Int=white)=TextView(this).apply { text=value; textSize=size; setTextColor(color); includeFontPadding=false }
     private fun column()=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL }
     private fun row()=LinearLayout(this).apply { orientation=LinearLayout.HORIZONTAL; gravity=Gravity.CENTER_VERTICAL }
@@ -835,13 +846,266 @@ class MainActivity: Activity() {
                 setKeepContentOnPlayerReset(true); setShutterBackgroundColor(Color.BLACK); setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS)
             }
             playerView=view; root.addView(view,FrameLayout.LayoutParams(-1,-1))
-            hud=column().apply { setPadding(dp(widthDp()*.05f),dp(20),dp(widthDp()*.05f),(resources.displayMetrics.heightPixels*.05f).toInt()); background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.TRANSPARENT,Color.argb(240,11,15,21))) }
-            playbackTitle=text("",23f).apply { maxLines=1; ellipsize=TextUtils.TruncateAt.END; setTypeface(null,Typeface.BOLD) }; hud.addView(playbackTitle)
-            playbackText=text("",15f,muted).apply { setPadding(0,dp(10),0,dp(9)) }; hud.addView(playbackText)
-            progressBar=ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal).apply { max=1000; progressTintList=android.content.res.ColorStateList.valueOf(accent); progressBackgroundTintList=android.content.res.ColorStateList.valueOf(surface) }; hud.addView(progressBar,lp(-1,dp(4)))
-            hud.addView(text("确认 暂停/播放    左右 快退/快进    ↓ 选集    ↑ 更多    返回 收起 / 退出",13f,muted).apply { setPadding(0,dp(12),0,0) })
-            controls=column().apply { setPadding(0,dp(12),0,0); visibility=View.GONE }; hud.addView(controls)
-            root.addView(ScrollView(this).apply { isVerticalScrollBarEnabled=false; addView(hud) },FrameLayout.LayoutParams(-1,-2,Gravity.BOTTOM))
+
+            root.setOnTouchListener { _, event ->
+                if(screen!="player") return@setOnTouchListener false
+                val curDetail=detail ?: return@setOnTouchListener false
+                val p=player
+                when(event.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> {
+                        touchStartX=event.x; touchStartY=event.y
+                        isSwipingVertical=false; isSwipingHorizontal=false
+                        main.removeCallbacks(hideHud)
+                        true
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        val deltaX=event.x-touchStartX
+                        val deltaY=event.y-touchStartY
+                        val absX=kotlin.math.abs(deltaX); val absY=kotlin.math.abs(deltaY)
+                        if(!isSwipingVertical && !isSwipingHorizontal) {
+                            if(absY>dp(14) && absY>absX*1.25f) isSwipingVertical=true
+                            else if(absX>dp(20) && absX>absY*1.25f) isSwipingHorizontal=true
+                        }
+                        if(isSwipingVertical) {
+                            val clampedY=(deltaY*0.42f).coerceIn(-dp(140).toFloat(),dp(140).toFloat())
+                            playerView?.translationY=clampedY
+                            if(deltaY<-dp(35)) {
+                                touchHintView?.text="上滑播放下一集 ⬆️"
+                                touchHintView?.visibility=View.VISIBLE
+                            } else if(deltaY>dp(35)) {
+                                touchHintView?.text="下滑播放上一集 ⬇️"
+                                touchHintView?.visibility=View.VISIBLE
+                            } else touchHintView?.visibility=View.GONE
+                        } else if(isSwipingHorizontal) {
+                            if(p!=null && playbackReady && p.duration>0) {
+                                val screenW=resources.displayMetrics.widthPixels.toFloat().coerceAtLeast(1f)
+                                val seekDeltaMs=((deltaX/screenW)*90000).toLong()
+                                val target=(p.currentPosition+seekDeltaMs).coerceIn(0,p.duration)
+                                val sign=if(seekDeltaMs>=0) "+" else ""
+                                touchHintView?.text="${sign}${seekDeltaMs/1000}s [${formatTime(target)} / ${formatTime(p.duration)}]"
+                                touchHintView?.visibility=View.VISIBLE
+                            }
+                        }
+                        true
+                    }
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                        touchHintView?.visibility=View.GONE
+                        val deltaX=event.x-touchStartX
+                        val deltaY=event.y-touchStartY
+                        val absX=kotlin.math.abs(deltaX); val absY=kotlin.math.abs(deltaY)
+                        if(isSwipingVertical) {
+                            isSwipingVertical=false
+                            val threshold=dp(52).toFloat()
+                            if(deltaY<-threshold) {
+                                if(episodeIndex<curDetail.episodes.lastIndex) {
+                                    val screenH=resources.displayMetrics.heightPixels.toFloat()
+                                    playerView?.animate()?.translationY(-screenH*0.4f)?.alpha(0.3f)?.setDuration(160)?.withEndAction {
+                                        skipEpisode(1)
+                                        playerView?.translationY=screenH*0.4f
+                                        playerView?.animate()?.translationY(0f)?.alpha(1f)?.setDuration(220)?.start()
+                                    }?.start()
+                                } else {
+                                    Toast.makeText(this@MainActivity,"已经是最后一集了",Toast.LENGTH_SHORT).show()
+                                    playerView?.animate()?.translationY(0f)?.alpha(1f)?.setDuration(200)?.start()
+                                }
+                            } else if(deltaY>threshold) {
+                                if(episodeIndex>0) {
+                                    val screenH=resources.displayMetrics.heightPixels.toFloat()
+                                    playerView?.animate()?.translationY(screenH*0.4f)?.alpha(0.3f)?.setDuration(160)?.withEndAction {
+                                        skipEpisode(-1)
+                                        playerView?.translationY=-screenH*0.4f
+                                        playerView?.animate()?.translationY(0f)?.alpha(1f)?.setDuration(220)?.start()
+                                    }?.start()
+                                } else {
+                                    Toast.makeText(this@MainActivity,"已经是第一集了",Toast.LENGTH_SHORT).show()
+                                    playerView?.animate()?.translationY(0f)?.alpha(1f)?.setDuration(200)?.start()
+                                }
+                            } else {
+                                playerView?.animate()?.translationY(0f)?.alpha(1f)?.setDuration(200)?.start()
+                            }
+                        } else if(isSwipingHorizontal) {
+                            isSwipingHorizontal=false
+                            if(p!=null && playbackReady && p.duration>0) {
+                                val screenW=resources.displayMetrics.widthPixels.toFloat().coerceAtLeast(1f)
+                                val seekDeltaMs=((deltaX/screenW)*90000).toLong()
+                                val target=(p.currentPosition+seekDeltaMs).coerceIn(0,p.duration)
+                                seekTo(target)
+                            }
+                        } else if(absX<dp(10) && absY<dp(10)) {
+                            val now=android.os.SystemClock.elapsedRealtime()
+                            if(now-touchLastTapTime<300) {
+                                touchLastTapTime=0L
+                                togglePlayback()
+                                flashCenterBadge(player?.playWhenReady==true)
+                            } else {
+                                touchLastTapTime=now
+                                main.postDelayed({
+                                    if(touchLastTapTime!=0L) {
+                                        touchLastTapTime=0L
+                                        if(hud.visibility==View.VISIBLE) hidePlaybackOverlay() else showHud()
+                                    }
+                                },300)
+                            }
+                        }
+                        if(hud.visibility==View.VISIBLE && player?.isPlaying==true) main.postDelayed(hideHud,4500)
+                        true
+                    }
+                    else -> false
+                }
+            }
+
+            hud=FrameLayout(this).apply { layoutParams=FrameLayout.LayoutParams(-1,-1) }
+
+            val topBar=row().apply {
+                setPadding(dp(16),dp(14),dp(16),dp(14))
+                background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.argb(200,0,0,0),Color.TRANSPARENT))
+            }
+            val backBtn=TextView(this).apply {
+                text="‹"; textSize=28f; setTextColor(Color.WHITE); gravity=Gravity.CENTER
+                background=rounded(Color.argb(160,24,30,42),Color.argb(60,255,255,255))
+                setOnClickListener { returnToDetail() }
+            }
+            topBar.addView(backBtn,LinearLayout.LayoutParams(dp(44),dp(44)))
+            playbackTitle=text("",16f).apply {
+                maxLines=1; ellipsize=TextUtils.TruncateAt.END; setTypeface(null,Typeface.BOLD)
+                setPadding(dp(12),0,dp(12),0)
+            }
+            topBar.addView(playbackTitle,lp(0,-2).apply { weight=1f })
+            val favBtn=TextView(this).apply {
+                val isFav=library.favorite(data.series.id)
+                text=if(isFav) "★ 已收藏" else "☆ 收藏"; textSize=13f; setTextColor(Color.WHITE); gravity=Gravity.CENTER
+                setPadding(dp(14),dp(8),dp(14),dp(8))
+                background=rounded(if(isFav) Color.rgb(255,60,90) else Color.argb(140,40,48,64))
+                setOnClickListener {
+                    favoriteMonitor.stop()
+                    val saved=library.toggle(data.series)
+                    if(saved) library.observeFavorite(data.series.id,data.episodes.size,System.currentTimeMillis(),acknowledge=true)
+                    text=if(saved) "★ 已收藏" else "☆ 收藏"
+                    background=rounded(if(saved) Color.rgb(255,60,90) else Color.argb(140,40,48,64))
+                    Toast.makeText(this@MainActivity,if(saved) "已加入收藏" else "已取消收藏",Toast.LENGTH_SHORT).show()
+                }
+            }
+            topBar.addView(favBtn,LinearLayout.LayoutParams(-2,dp(38)))
+            hud.addView(topBar,FrameLayout.LayoutParams(-1,-2,Gravity.TOP))
+
+            val rightSidebar=column().apply {
+                gravity=Gravity.CENTER_HORIZONTAL
+                setPadding(dp(10),dp(10),dp(10),dp(10))
+            }
+            val epPill=column().apply {
+                gravity=Gravity.CENTER; setPadding(dp(6),dp(8),dp(6),dp(8))
+                background=rounded(Color.argb(160,20,24,36),Color.argb(40,255,255,255))
+                addView(text("选集",11f,Color.rgb(200,210,225)).apply { gravity=Gravity.CENTER })
+                sidebarEpisodeText=text("第${episodeIndex+1}集",12f).apply { gravity=Gravity.CENTER; setTypeface(null,Typeface.BOLD) }
+                addView(sidebarEpisodeText)
+                setOnClickListener { showEpisodePanel(this) }
+            }
+            rightSidebar.addView(epPill,LinearLayout.LayoutParams(dp(56),-2).apply { bottomMargin=dp(12) })
+
+            val speedPill=TextView(this).apply {
+                sidebarSpeedText=this
+                text="${library.playbackSpeed}x"; textSize=13f; setTextColor(Color.WHITE); setTypeface(null,Typeface.BOLD); gravity=Gravity.CENTER
+                background=rounded(Color.argb(160,20,24,36),Color.argb(40,255,255,255))
+                setOnClickListener {
+                    val speeds=listOf(1.0f,1.25f,1.5f,2.0f)
+                    val cur=library.playbackSpeed
+                    val next=speeds[(speeds.indexOf(cur).coerceAtLeast(0)+1)%speeds.size]
+                    library.playbackSpeed=next; player?.setPlaybackSpeed(next); text="${next}x"
+                    Toast.makeText(this@MainActivity,"倍速已切换至 ${next}x",Toast.LENGTH_SHORT).show()
+                    updatePlaybackText()
+                }
+            }
+            rightSidebar.addView(speedPill,LinearLayout.LayoutParams(dp(56),dp(44)).apply { bottomMargin=dp(12) })
+
+            val aspectPill=TextView(this).apply {
+                sidebarAspectText=this
+                text=if(library.frameMode==VideoFrameMode.ZOOM) "铺满" else "适应"; textSize=13f; setTextColor(Color.WHITE); gravity=Gravity.CENTER
+                background=rounded(Color.argb(160,20,24,36),Color.argb(40,255,255,255))
+                setOnClickListener {
+                    library.frameMode=if(library.frameMode==VideoFrameMode.ZOOM) VideoFrameMode.FIT else VideoFrameMode.ZOOM
+                    playerView?.resizeMode=frameResizeMode()
+                    text=if(library.frameMode==VideoFrameMode.ZOOM) "铺满" else "适应"
+                    Toast.makeText(this@MainActivity,if(library.frameMode==VideoFrameMode.ZOOM) "等比铺满 (抖音全屏模式)" else "完整画面",Toast.LENGTH_SHORT).show()
+                }
+            }
+            rightSidebar.addView(aspectPill,LinearLayout.LayoutParams(dp(56),dp(44)).apply { bottomMargin=dp(12) })
+
+            val cleanPill=TextView(this).apply {
+                text="清屏"; textSize=13f; setTextColor(Color.WHITE); gravity=Gravity.CENTER
+                background=rounded(Color.argb(160,20,24,36),Color.argb(40,255,255,255))
+                setOnClickListener {
+                    hidePlaybackOverlay()
+                    Toast.makeText(this@MainActivity,"已开启清屏，轻点屏幕唤出菜单",Toast.LENGTH_SHORT).show()
+                }
+            }
+            rightSidebar.addView(cleanPill,LinearLayout.LayoutParams(dp(56),dp(44)))
+            hud.addView(rightSidebar,FrameLayout.LayoutParams(-2,-2,Gravity.END or Gravity.CENTER_VERTICAL).apply { rightMargin=dp(6) })
+
+            val bottomArea=column().apply {
+                setPadding(dp(16),dp(24),dp(16),dp(10))
+                background=GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP,intArrayOf(Color.argb(230,0,0,0),Color.TRANSPARENT))
+            }
+            val bottomTitle=text(data.series.title,18f).apply {
+                setTypeface(null,Typeface.BOLD)
+                setShadowLayer(5f,1f,1f,Color.BLACK)
+            }
+            bottomArea.addView(bottomTitle)
+
+            bottomDramaSub=text("第 ${episodeIndex+1} 集 / 共 ${data.episodes.size} 集  ·  点击选集  ·  上下滑切集",13f,Color.rgb(215,225,240)).apply {
+                setPadding(0,dp(3),0,dp(6))
+                setShadowLayer(4f,1f,1f,Color.BLACK)
+                setOnClickListener { showEpisodePanel(this) }
+            }
+            bottomArea.addView(bottomDramaSub)
+
+            playbackText=text("",13f,muted).apply {
+                setPadding(0,0,0,dp(6))
+                setShadowLayer(4f,1f,1f,Color.BLACK)
+            }
+            bottomArea.addView(playbackText)
+
+            progressBar=ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal).apply {
+                max=1000
+                progressTintList=android.content.res.ColorStateList.valueOf(Color.rgb(255,60,90))
+                progressBackgroundTintList=android.content.res.ColorStateList.valueOf(Color.argb(100,255,255,255))
+            }
+            val progressTouchBox=FrameLayout(this).apply {
+                setPadding(0,dp(8),0,dp(8))
+                addView(progressBar,FrameLayout.LayoutParams(-1,dp(5),Gravity.CENTER_VERTICAL))
+                setOnTouchListener { v,ev ->
+                    val curP=player
+                    if(curP!=null && playbackReady && curP.duration>0) {
+                        val ratio=(ev.x/v.width.toFloat()).coerceIn(0f,1f)
+                        val targetMs=(ratio*curP.duration).toLong()
+                        progressBar.progress=(ratio*1000).toInt()
+                        if(ev.action==MotionEvent.ACTION_UP) seekTo(targetMs)
+                    }
+                    true
+                }
+            }
+            bottomArea.addView(progressTouchBox,lp(-1,-2))
+
+            controls=column().apply { setPadding(0,dp(6),0,0); visibility=View.GONE }
+            bottomArea.addView(controls)
+
+            hud.addView(bottomArea,FrameLayout.LayoutParams(-1,-2,Gravity.BOTTOM))
+
+            touchHintView=text("",15f).apply {
+                setTypeface(null,Typeface.BOLD); gravity=Gravity.CENTER
+                setPadding(dp(22),dp(12),dp(22),dp(12))
+                background=rounded(Color.argb(210,12,16,24),Color.argb(80,255,255,255),12)
+                visibility=View.GONE
+            }
+            hud.addView(touchHintView,FrameLayout.LayoutParams(-2,-2,Gravity.CENTER))
+
+            centerPlayBadge=text("▶",34f).apply {
+                gravity=Gravity.CENTER
+                background=rounded(Color.argb(170,10,14,22),Color.argb(70,255,255,255),36)
+                visibility=View.GONE
+            }
+            hud.addView(centerPlayBadge,FrameLayout.LayoutParams(dp(72),dp(72),Gravity.CENTER))
+
+            root.addView(hud,FrameLayout.LayoutParams(-1,-1))
         }
         playbackTitle.text="${data.series.title}  ·  第 ${episodeIndex+1} 集"
         playbackText.text="正在获取播放地址…"; progressBar.progress=0; progressBar.visibility=View.VISIBLE; hidePlaybackOverlay()
@@ -959,18 +1223,34 @@ class MainActivity: Activity() {
         }
         android.util.Log.w("HongguoTV","Playback failure: ${problem.javaClass.simpleName}"+(if(problem is PlaybackException) " code=${problem.errorCodeName}" else ""))
     }
+    private fun flashCenterBadge(playing: Boolean) {
+        val badge=centerPlayBadge ?: return
+        badge.text=if(playing) "▶" else "❚❚"
+        badge.alpha=1f; badge.scaleX=0.8f; badge.scaleY=0.8f; badge.visibility=View.VISIBLE
+        badge.animate().scaleX(1.15f).scaleY(1.15f).alpha(0f).setDuration(450).withEndAction { badge.visibility=View.GONE }.start()
+    }
     private fun hidePlaybackOverlay() {
         main.removeCallbacks(hideHud)
-        panel=false; controls.visibility=View.GONE; controls.clearFocus(); hud.visibility=View.GONE
+        panel=false; controls.visibility=View.GONE; controls.clearFocus()
+        if(::hud.isInitialized) hud.animate().alpha(0f).setDuration(220).withEndAction { hud.visibility=View.GONE }.start()
     }
     private fun showHud() {
         if(screen!="player") return
-        hud.visibility=View.VISIBLE; updatePlaybackText(); main.removeCallbacks(hideHud)
+        if(::hud.isInitialized) {
+            hud.visibility=View.VISIBLE
+            hud.animate().alpha(1f).setDuration(220).start()
+        }
+        updatePlaybackText(); main.removeCallbacks(hideHud)
         if(!panel && player?.isPlaying==true) main.postDelayed(hideHud,4500)
     }
     private fun updatePlaybackText() {
         transportPlay?.text=if(player?.playWhenReady==true) "暂停" else "播放"
         sleepButton?.text="定时 ${sleepTimer.label()}"
+        sidebarSpeedText?.text="${player?.playbackParameters?.speed ?: library.playbackSpeed}x"
+        sidebarEpisodeText?.text="第${episodeIndex+1}集"
+        detail?.let { d ->
+            bottomDramaSub?.text="第 ${episodeIndex+1} 集 / 共 ${d.episodes.size} 集  ·  点击选集  ·  上下滑切集"
+        }
         if(screen!="player" || playError) return
         if(sleepStopped) { playbackText.text="定时停止已生效 · 观看位置已保存 · 按播放可继续"; return }
         if(!playbackReady) { playbackText.text=(if(!requestedAutoplay) "准备后保持暂停 · " else "")+if(video==null) "正在获取播放地址…" else "正在缓冲…"; return }
