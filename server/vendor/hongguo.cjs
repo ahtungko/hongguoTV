@@ -21,12 +21,15 @@
 const crypto = require('node:crypto');
 
 const SITE = 'https://hongguoduanju.com';
-const VIDEO_API = 'https://api5-normal-sinfonlineb.fqnovel.com/novel/player/multi_video_model/v1/';
+const VIDEO_API = 'https://api5-normal-sinfonlineb.fqnovel.com/novel/player/multi_video_model/preload/v1/';
 const APP_SEARCH_API = 'https://api5-normal-sinfonlinea.fqnovel.com/reading/bookapi/search/tab/v';
 const VIDEO_UA = 'com.phoenix.read/71332 (Linux; U; Android 16; zh_CN; 25053RT47C; Build/BP2A.250605.031.A3; Cronet/TTNetVersion:04657795 2026-01-23 QuicVersion:c67e9834 2025-09-08)';
-const APP_UA = 'com.phoenix.read/72232 (Linux; U; Android 16; zh_CN; 25053RT47C; Build/BP2A.250605.031.A3)';
+function randomDeviceId() {
+    return String(Math.floor(1000000000000000 + Math.random() * 9000000000000000));
+}
+
 const DEVICE = {
-    iid: '1905892595382586', device_id: '1905892595378490', ac: 'wifi', channel: 'update_64', aid: '8662', app_name: 'novelread',
+    iid: randomDeviceId(), device_id: randomDeviceId(), ac: 'wifi', channel: 'update_64', aid: '8662', app_name: 'novelread',
     version_code: '71332', version_name: '7.1.3.32', device_platform: 'android', os: 'android',
     ssmix: 'a', device_type: '25053RT47C', device_brand: 'Redmi', language: 'zh', os_api: '36',
     os_version: '16', manifest_version_code: '71332', resolution: '1280*2772', dpi: '520',
@@ -436,7 +439,7 @@ function signedVideoRequest(payload) {
     return { url, headers, body };
 }
 
-async function requestVideoModel(vid) {
+async function requestVideoModel(vid, retry = true) {
     const payload = JSON.stringify({
         biz_param: { detail_page_version: 0, device_level: 3, disable_digg_stat: false, need_all_video_definition: true, need_mp4_align: false, use_os_player: false, use_server_dns: false, video_platform: 1024 },
         mixed_video_id_map: { '1004': [str(vid)] },
@@ -444,7 +447,14 @@ async function requestVideoModel(vid) {
     const signed = signedVideoRequest(payload);
     const resp = await axios.post(signed.url, signed.body, { headers: signed.headers, timeout: 20000, responseType: 'text' });
     const data = jsonBody(resp.data);
-    if (resp.status !== 200 || !data || Number(data.Code || data.code || 0) !== 0) throw new Error(`video_model failed: ${data?.Message || data?.message || resp.status}`);
+    if (resp.status !== 200 || !data || Number(data.Code || data.code || 0) !== 0) {
+        if (retry && Number(data?.Code || data?.code || 0) === 110001) {
+            DEVICE.device_id = randomDeviceId();
+            DEVICE.iid = randomDeviceId();
+            return requestVideoModel(vid, false);
+        }
+        throw new Error(`video_model failed: ${data?.Message || data?.message || resp.status}`);
+    }
     return data;
 }
 

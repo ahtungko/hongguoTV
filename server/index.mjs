@@ -7,12 +7,15 @@ const host =
 const port = Number(process.env.PORT || 8787);
 const server = createServer(provider, process.env.BRIDGE_TOKEN || "");
 server.listen(port, host, () => {
-  console.log(`HongguoTV 内容服务：http://${host}:${port}`);
+  const displayHost = host === "0.0.0.0" ? "localhost" : host;
+  console.log(`HongguoTV 服务运行中：http://${displayHost}:${port}`);
+  console.log(`👉 网页版播放入口：http://${displayHost}:${port}/`);
   if (host === "0.0.0.0") {
     for (const list of Object.values(os.networkInterfaces()))
       for (const nic of list || []) {
-        if (nic.family === "IPv4" && !nic.internal)
-          console.log(`电视设置 → 服务地址：http://${nic.address}:${port}`);
+        if (nic.family === "IPv4" && !nic.internal) {
+          console.log(`   局域网访问：http://${nic.address}:${port}/`);
+        }
       }
   }
   console.log(

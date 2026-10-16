@@ -8,6 +8,7 @@
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test tests/*.test.*",
     "bridge": "node server/index.mjs",
+    "web": "node server/index.mjs",
     "probe": "node scripts/probe.mjs",
     "build:android": "bash scripts/build-android.sh"
   },

@@ -1,5 +1,23 @@
 import http from "node:http";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { timingSafeEqual } from "node:crypto";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const PUBLIC_DIR = path.resolve(__dirname, "public");
+
+const MIME_TYPES = {
+  ".html": "text/html; charset=utf-8",
+  ".js": "application/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".svg": "image/svg+xml",
+  ".ico": "image/x-icon",
+};
 
 export function byteRange(value, total) {
   if (!value) return [0, total - 1];
@@ -23,16 +41,73 @@ export function byteRange(value, total) {
 export function createServer(provider, token = "") {
   let activeStreams = 0;
   return http.createServer(async (req, res) => {
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+      "Access-Control-Allow-Headers": "Authorization, Content-Type, Range",
+      "Access-Control-Expose-Headers": "Content-Length, Content-Range, Accept-Ranges",
+    };
+
+    if (req.method === "OPTIONS") {
+      res.writeHead(204, { ...corsHeaders, "Access-Control-Max-Age": "86400" });
+      return res.end();
+    }
+
     const json = (status, value) => {
       res.writeHead(status, {
         "Content-Type": "application/json; charset=utf-8",
         "Cache-Control": "no-store",
+        ...corsHeaders,
       });
       res.end(JSON.stringify(value));
     };
+
     const url = new URL(req.url || "/", "http://localhost");
+
+    // Static file serving for Web frontend (root and /public/)
+    if (url.pathname === "/" || url.pathname === "/index.html") {
+      try {
+        const filePath = path.join(PUBLIC_DIR, "index.html");
+        const content = await fs.readFile(filePath);
+        res.writeHead(200, {
+          "Content-Type": "text/html; charset=utf-8",
+          "Cache-Control": "no-cache",
+          ...corsHeaders,
+        });
+        if (req.method === "HEAD") return res.end();
+        return res.end(content);
+      } catch {
+        // If index.html doesn't exist, proceed to API logic
+      }
+    }
+
+    if (url.pathname.startsWith("/public/")) {
+      const relPath = path.normalize(url.pathname.replace(/^\/public\//, "")).replace(/^(\.\.[/\\])+/, "");
+      const filePath = path.join(PUBLIC_DIR, relPath);
+      if (filePath.startsWith(PUBLIC_DIR)) {
+        try {
+          const stat = await fs.stat(filePath);
+          if (stat.isFile()) {
+            const ext = path.extname(filePath).toLowerCase();
+            const mime = MIME_TYPES[ext] || "application/octet-stream";
+            const content = await fs.readFile(filePath);
+            res.writeHead(200, {
+              "Content-Type": mime,
+              "Cache-Control": "max-age=3600",
+              ...corsHeaders,
+            });
+            if (req.method === "HEAD") return res.end();
+            return res.end(content);
+          }
+        } catch {
+          return json(404, { error: "静态资源不存在" });
+        }
+      }
+    }
+
     if (token) {
-      const actual = Buffer.from(req.headers.authorization || "");
+      const queryToken = url.searchParams.get("token") || "";
+      const actual = Buffer.from(req.headers.authorization || `Bearer ${queryToken}`);
       const expected = Buffer.from(`Bearer ${token}`);
       if (
         actual.length !== expected.length ||
@@ -40,6 +115,7 @@ export function createServer(provider, token = "") {
       )
         return json(401, { error: "服务访问口令不正确" });
     }
+
     if (!["GET", "HEAD"].includes(req.method))
       return json(405, { error: "Method not allowed" });
     try {
@@ -87,7 +163,10 @@ export function createServer(provider, token = "") {
         const stream = await provider.stream(play[1]);
         const range = byteRange(req.headers.range, stream.total);
         if (!range) {
-          res.writeHead(416, { "Content-Range": `bytes */${stream.total}` });
+          res.writeHead(416, {
+            "Content-Range": `bytes */${stream.total}`,
+            ...corsHeaders,
+          });
           return res.end();
         }
         const [start, end] = range;
@@ -96,6 +175,7 @@ export function createServer(provider, token = "") {
           "Accept-Ranges": "bytes",
           "Content-Length": end - start + 1,
           "Cache-Control": "no-store",
+          ...corsHeaders,
         };
         if (req.headers.range)
           headers["Content-Range"] = `bytes ${start}-${end}/${stream.total}`;
