@@ -1,5 +1,5 @@
 // PWA Service Worker - HongGuoTV
-const CACHE_NAME = 'hongguo-shell-v2.2';
+const CACHE_NAME = 'hongguo-shell-v2.3';
 const ASSETS = [
   '/',
   '/manifest.json',

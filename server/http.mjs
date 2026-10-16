@@ -182,7 +182,7 @@ export function createServer(provider, token = "") {
           "Content-Type": "video/mp4",
           "Accept-Ranges": "bytes",
           "Content-Length": end - start + 1,
-          "Cache-Control": "no-store",
+          "Cache-Control": "public, max-age=86400",
           ...corsHeaders,
         };
         if (req.headers.range)

@@ -1443,6 +1443,7 @@
     <div class="player-body" id="playerBody">
       <div class="video-wrapper" id="videoWrapper">
         <video id="videoPlayer" playsinline preload="auto"></video>
+        <video id="preloadVideo" playsinline preload="metadata" muted style="display:none;"></video>
         
         <!-- 抖音播放/暂停中间大图标 -->
         <div class="center-play-badge" id="centerPlayBadge">
@@ -1578,6 +1579,7 @@
       rangeSize: 30,
       currentRangeIndex: 0,
       hudTimer: null,
+      preloadTimer: null,
 
       // 初始化
       async init() {
@@ -1633,6 +1635,33 @@
             await reg.update();
           }
         } catch (err) {}
+      },
+
+      // 抖音同款下一集后台静默预加载 (大幅减少跨洲延迟导致的切集等待)
+      preloadNextEpisode(currentIndex) {
+        clearTimeout(this.preloadTimer);
+        const nextIndex = currentIndex + 1;
+        if (!this.currentEpisodes || nextIndex >= this.currentEpisodes.length) return;
+
+        // 当前视频起播 1.5 秒后，在后台静默预加载下一集前 512KB
+        this.preloadTimer = setTimeout(() => {
+          const nextEp = this.currentEpisodes[nextIndex];
+          if (!nextEp) return;
+          const tokenQuery = this.token ? `?token=${encodeURIComponent(this.token)}` : '';
+          const streamUrl = `/api/episodes/${nextEp.id}/stream${tokenQuery}`;
+
+          // 1. 静默触发浏览器媒体管道预热
+          const preloader = document.getElementById('preloadVideo');
+          if (preloader) {
+            preloader.src = streamUrl;
+            preloader.load();
+          }
+
+          // 2. 提前预热 Serv00 视频流解析与首块数据
+          fetch(streamUrl, {
+            headers: { Range: 'bytes=0-524287' }
+          }).catch(() => {});
+        }, 1500);
       },
 
       // 通用 API 请求封装
@@ -1986,6 +2015,7 @@
         }
 
         video.play().catch(() => {});
+        this.preloadNextEpisode(index);
 
         // 记录历史
         this.saveHistory({
@@ -2382,6 +2412,7 @@
         });
         video.addEventListener('playing', () => {
           this.hideLoadingOverlay();
+          this.preloadNextEpisode(this.currentEpisodeIndex);
         });
         video.addEventListener('loadeddata', () => {
           this.hideLoadingOverlay();
@@ -2511,6 +2542,11 @@
         if (video) {
           video.pause();
           video.src = '';
+        }
+        clearTimeout(this.preloadTimer);
+        const pre = document.getElementById('preloadVideo');
+        if (pre) {
+          pre.src = '';
         }
         this.hideLoadingOverlay();
         clearTimeout(this.hudTimer);
