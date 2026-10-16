@@ -1,6 +1,8 @@
 import fs from "node:fs";
+import path from "node:path";
 import vm from "node:vm";
 import crypto from "node:crypto";
+import { fileURLToPath } from "node:url";
 import axios from "axios";
 
 import http from "node:http";
@@ -9,11 +11,25 @@ import https from "node:https";
 const httpAgent = new http.Agent({ keepAlive: true, keepAliveMsecs: 30000, maxSockets: 50 });
 const httpsAgent = new https.Agent({ keepAlive: true, keepAliveMsecs: 30000, maxSockets: 50 });
 
+function loadVendorSource() {
+  const currentDir = path.dirname(fileURLToPath(import.meta.url));
+  const candidates = [
+    new URL("./vendor/hongguo.cjs", import.meta.url),
+    path.resolve(currentDir, "vendor/hongguo.cjs"),
+    path.resolve(currentDir, "../server/vendor/hongguo.cjs"),
+    path.resolve(process.cwd(), "server/vendor/hongguo.cjs"),
+    path.resolve(process.cwd(), "vendor/hongguo.cjs"),
+  ];
+  for (const candidate of candidates) {
+    try {
+      return fs.readFileSync(candidate, "utf8");
+    } catch {}
+  }
+  throw new Error("Unable to locate vendor/hongguo.cjs");
+}
+
 // Trusted, pinned GPL source. This is a compatibility wrapper, not a sandbox for user scripts.
-const source = fs.readFileSync(
-  new URL("./vendor/hongguo.cjs", import.meta.url),
-  "utf8"
-);
+const source = loadVendorSource();
 const context = vm.createContext({
   require: (name) => {
     if (name === "node:crypto") return crypto;

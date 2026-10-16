@@ -6,8 +6,12 @@ import { fileURLToPath } from "node:url";
 import { timingSafeEqual } from "node:crypto";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const rootPublic = path.resolve(__dirname, "../public");
-const PUBLIC_DIR = fsSync.existsSync(rootPublic) ? rootPublic : path.resolve(__dirname, "public");
+const publicCandidates = [
+  path.resolve(process.cwd(), "public"),
+  path.resolve(__dirname, "../public"),
+  path.resolve(__dirname, "public"),
+];
+const PUBLIC_DIR = publicCandidates.find((dir) => fsSync.existsSync(dir)) || publicCandidates[0];
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
