@@ -159,7 +159,7 @@ export function createRequestHandler(provider, token = "") {
       }
       const detail = /^\/api\/series\/(\d{1,30})$/.exec(url.pathname);
       if (detail) return json(200, await provider.detail(detail[1]));
-      const play = /^\/api\/episodes\/(\d{1,30})\/(play|stream)$/.exec(
+      const play = /^\/api\/episodes\/(\d{1,30})\/(play|stream)(\.mp4)?$/.exec(
         url.pathname
       );
       if (!play) return json(404, { error: "接口不存在" });
