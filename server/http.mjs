@@ -64,20 +64,24 @@ export function createServer(provider, token = "") {
 
     const url = new URL(req.url || "/", "http://localhost");
 
-    // Static file serving for Web frontend (root and /public/)
-    if (url.pathname === "/" || url.pathname === "/index.html") {
+    // Static file serving for Web frontend (root, PWA assets, and /public/)
+    const staticRoots = ["/", "/index.html", "/manifest.json", "/sw.js", "/favicon.ico", "/icon-192.png", "/icon-512.png"];
+    if (staticRoots.includes(url.pathname)) {
+      const fileName = url.pathname === "/" ? "index.html" : url.pathname.slice(1);
+      const filePath = path.join(PUBLIC_DIR, fileName);
       try {
-        const filePath = path.join(PUBLIC_DIR, "index.html");
         const content = await fs.readFile(filePath);
+        const ext = path.extname(filePath).toLowerCase();
+        const mime = MIME_TYPES[ext] || "application/octet-stream";
         res.writeHead(200, {
-          "Content-Type": "text/html; charset=utf-8",
-          "Cache-Control": "no-cache",
+          "Content-Type": mime,
+          "Cache-Control": fileName === "sw.js" ? "no-cache" : "max-age=3600",
           ...corsHeaders,
         });
         if (req.method === "HEAD") return res.end();
         return res.end(content);
       } catch {
-        // If index.html doesn't exist, proceed to API logic
+        // If file doesn't exist, proceed
       }
     }
 
@@ -229,7 +233,7 @@ export function createServer(provider, token = "") {
       if (res.headersSent) res.destroy();
       else
         json(502, {
-          error: `上游解析失败: ${error.message || error.code || "UPSTREAM_ERROR"}`,
+          error: "内容源暂不可用，请稍后重试；服务连通不代表内容源可用",
         });
     }
   });

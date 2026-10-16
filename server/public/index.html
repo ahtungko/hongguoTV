@@ -2,20 +2,36 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>红果短剧 Web版</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>红果短剧 · 私人影院</title>
+
+  <!-- PWA 支持与元标签 -->
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/public/icon.svg">
+  <link rel="apple-touch-icon" href="/public/icon.svg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="红果短剧">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#070a12">
+
   <style>
     :root {
-      --bg-base: #090d16;
-      --bg-card: #131b2e;
-      --bg-card-hover: #1c2742;
-      --primary: #f43f5e;
-      --primary-hover: #e11d48;
-      --primary-light: rgba(244, 63, 94, 0.15);
+      --bg-base: #070a12;
+      --bg-surface: #0f1523;
+      --bg-card: rgba(20, 27, 45, 0.75);
+      --bg-card-hover: rgba(30, 41, 68, 0.85);
+      --primary: #ff2d55;
+      --primary-hover: #e02449;
+      --primary-gradient: linear-gradient(135deg, #ff2d55, #ff5e7e);
+      --primary-glow: rgba(255, 45, 85, 0.35);
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
-      --border-color: rgba(255, 255, 255, 0.08);
-      --border-focus: rgba(244, 63, 94, 0.5);
+      --text-dim: #64748b;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(255, 45, 85, 0.5);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     * {
@@ -23,31 +39,40 @@
       margin: 0;
       padding: 0;
       -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    input, textarea {
+      user-select: auto;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg-base);
+      background-image: radial-gradient(circle at 50% 0%, rgba(255, 45, 85, 0.08), transparent 45%);
       color: var(--text-main);
       min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       overflow-x: hidden;
+      padding-bottom: calc(65px + var(--safe-bottom));
     }
 
     /* 顶部导航 */
     header {
       position: sticky;
       top: 0;
-      z-index: 50;
-      background: rgba(9, 13, 22, 0.92);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border-color);
-      padding: 12px 20px;
+      z-index: 60;
+      background: rgba(7, 10, 18, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: max(12px, var(--safe-top)) 16px 12px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 12px;
     }
 
     .brand {
@@ -55,52 +80,58 @@
       align-items: center;
       gap: 8px;
       font-size: 1.15rem;
-      font-weight: 700;
+      font-weight: 800;
       color: #fff;
       cursor: pointer;
-      white-space: nowrap;
       text-decoration: none;
+      letter-spacing: -0.5px;
     }
 
-    .brand .logo-badge {
-      background: linear-gradient(135deg, #f43f5e, #fb7185);
-      color: white;
-      padding: 2px 7px;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      font-weight: 800;
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--primary-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    .search-box-wrap {
+      flex: 1;
+      max-width: 460px;
+      position: relative;
     }
 
     .search-bar {
       display: flex;
       align-items: center;
       background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--border-color);
-      border-radius: 9999px;
-      padding: 4px 12px;
-      max-width: 460px;
-      flex: 1;
-      transition: all 0.2s;
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      padding: 6px 14px;
+      transition: all 0.25s ease;
     }
 
     .search-bar:focus-within {
+      background: rgba(255, 255, 255, 0.1);
       border-color: var(--primary);
-      background: rgba(255, 255, 255, 0.09);
-      box-shadow: 0 0 0 3px var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(255, 45, 85, 0.2);
     }
 
     .search-bar input {
+      flex: 1;
       background: transparent;
       border: none;
       outline: none;
       color: #fff;
-      font-size: 0.9rem;
-      width: 100%;
-      padding: 6px 4px;
+      font-size: 0.88rem;
+      padding: 2px 6px;
     }
 
     .search-bar input::placeholder {
-      color: #64748b;
+      color: var(--text-dim);
     }
 
     .search-bar button {
@@ -111,49 +142,69 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 4px;
+      padding: 2px;
+      transition: color 0.15s;
     }
 
     .search-bar button:hover {
       color: var(--primary);
     }
 
-    .nav-actions {
+    /* 桌面端导航项 */
+    .desktop-nav {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
-    .nav-btn {
+    .desktop-nav-btn {
       background: transparent;
       border: 1px solid transparent;
       color: var(--text-muted);
       font-size: 0.88rem;
-      padding: 6px 12px;
-      border-radius: 8px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 10px;
       cursor: pointer;
-      transition: all 0.15s;
-      white-space: nowrap;
+      transition: all 0.2s;
     }
 
-    .nav-btn:hover, .nav-btn.active {
+    .desktop-nav-btn:hover, .desktop-nav-btn.active {
       color: #fff;
       background: rgba(255, 255, 255, 0.08);
-      border-color: var(--border-color);
     }
 
-    .nav-btn.active {
-      color: var(--primary);
-      font-weight: 600;
+    .desktop-nav-btn.active {
+      background: var(--primary-gradient);
+      box-shadow: 0 4px 14px var(--primary-glow);
     }
 
-    /* 主内容区 */
+    .btn-lock {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .btn-lock:hover {
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* 主体内容 */
     main {
       flex: 1;
-      padding: 20px;
-      max-width: 1400px;
-      margin: 0 auto;
+      max-width: 1380px;
       width: 100%;
+      margin: 0 auto;
+      padding: 16px 16px 24px 16px;
     }
 
     .section-header {
@@ -161,69 +212,91 @@
       align-items: center;
       justify-content: space-between;
       margin-bottom: 16px;
+      padding: 0 4px;
     }
 
     .section-title {
       font-size: 1.25rem;
-      font-weight: 600;
+      font-weight: 700;
+      letter-spacing: -0.3px;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
     .section-title::before {
-      content: "";
-      display: block;
+      content: '';
+      display: inline-block;
       width: 4px;
-      height: 16px;
-      background: var(--primary);
+      height: 18px;
+      background: var(--primary-gradient);
       border-radius: 2px;
     }
 
-    /* 剧集网格 */
+    /* 剧集网格 (Mobile-first: 移动端自适应 2~3 列，桌面端 4~6 列) */
     .drama-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 16px;
-      margin-bottom: 30px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
     }
 
-    @media (min-width: 640px) {
+    @media (min-width: 480px) {
       .drama-grid {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+      }
+    }
+
+    @media (min-width: 768px) {
+      .drama-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
       }
     }
 
     @media (min-width: 1024px) {
       .drama-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-template-columns: repeat(5, 1fr);
+        gap: 20px;
       }
     }
 
+    @media (min-width: 1280px) {
+      .drama-grid {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 22px;
+      }
+    }
+
+    /* 剧集卡片 */
     .drama-card {
       background: var(--bg-card);
-      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
       overflow: hidden;
-      border: 1px solid var(--border-color);
       cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
       display: flex;
       flex-direction: column;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s, border-color 0.25s;
       position: relative;
+      backdrop-filter: blur(10px);
     }
 
     .drama-card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.6);
-      border-color: rgba(244, 63, 94, 0.4);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 45, 85, 0.15);
+      border-color: rgba(255, 45, 85, 0.35);
+    }
+
+    .drama-card:active {
+      transform: scale(0.97);
     }
 
     .drama-cover-wrap {
-      width: 100%;
-      aspect-ratio: 7 / 10;
       position: relative;
-      background: #1e293b;
+      width: 100%;
+      aspect-ratio: 3 / 4.2;
+      background: #111827;
       overflow: hidden;
     }
 
@@ -231,85 +304,116 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      display: block;
-      transition: transform 0.3s;
+      transition: transform 0.35s ease;
     }
 
     .drama-card:hover .drama-cover {
-      transform: scale(1.04);
+      transform: scale(1.05);
+    }
+
+    /* 海报阴影与角标 */
+    .cover-gradient {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, transparent 40%, rgba(7, 10, 18, 0.85) 100%);
+      pointer-events: none;
     }
 
     .drama-badge {
       position: absolute;
       top: 8px;
       right: 8px;
-      background: rgba(0, 0, 0, 0.75);
-      color: #fb7185;
-      font-size: 0.72rem;
-      padding: 2px 6px;
-      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      font-size: 0.68rem;
       font-weight: 600;
-      backdrop-filter: blur(4px);
+      padding: 3px 7px;
+      border-radius: 6px;
+      letter-spacing: 0.3px;
+    }
+
+    .play-icon-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      background: rgba(0, 0, 0, 0.3);
+      transition: opacity 0.25s;
+    }
+
+    .drama-card:hover .play-icon-overlay {
+      opacity: 1;
+    }
+
+    .play-icon-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--primary-gradient);
+      box-shadow: 0 4px 16px var(--primary-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: scale(0.8);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .drama-card:hover .play-icon-circle {
+      transform: scale(1);
     }
 
     .drama-info {
-      padding: 10px 12px;
+      padding: 10px 10px 12px 10px;
       display: flex;
       flex-direction: column;
       gap: 4px;
-      flex: 1;
     }
 
     .drama-title {
-      font-size: 0.95rem;
-      font-weight: 600;
+      font-size: 0.9rem;
+      font-weight: 700;
       color: #fff;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      line-height: 1.3;
     }
 
     .drama-tags {
-      font-size: 0.75rem;
-      color: var(--text-muted);
+      font-size: 0.72rem;
+      color: var(--text-dim);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-    }
-
-    .drama-desc {
-      font-size: 0.75rem;
-      color: #64748b;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      line-height: 1.35;
-      margin-top: 2px;
     }
 
     /* 分页控件 */
     .pagination {
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
       gap: 12px;
-      padding: 20px 0 40px;
+      margin-top: 28px;
     }
 
     .page-btn {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
       color: #fff;
-      padding: 8px 16px;
-      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 8px 18px;
+      border-radius: 999px;
       cursor: pointer;
-      font-size: 0.9rem;
-      transition: background 0.15s;
+      transition: all 0.2s;
     }
 
     .page-btn:hover:not(:disabled) {
-      background: var(--bg-card-hover);
+      background: rgba(255, 255, 255, 0.12);
       border-color: var(--primary);
     }
 
@@ -319,294 +423,21 @@
     }
 
     .page-indicator {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-    }
-
-    /* 播放器与详情弹层/页面 */
-    .player-view {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: var(--bg-base);
-      z-index: 100;
-      overflow-y: auto;
-      flex-direction: column;
-    }
-
-    .player-view.active {
-      display: flex;
-    }
-
-    .player-header {
-      padding: 12px 20px;
-      background: rgba(9, 13, 22, 0.9);
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 20;
-    }
-
-    .back-btn {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid var(--border-color);
-      color: #fff;
-      padding: 6px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.88rem;
-    }
-
-    .back-btn:hover {
-      background: rgba(255, 255, 255, 0.14);
-    }
-
-    .player-layout {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      max-width: 1400px;
-      margin: 0 auto;
-      width: 100%;
-      padding: 16px;
-      gap: 20px;
-    }
-
-    @media (min-width: 900px) {
-      .player-layout {
-        flex-direction: row;
-        align-items: flex-start;
-      }
-    }
-
-    /* 视频播放容器 */
-    .player-left {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 100%;
-      flex: 1;
-    }
-
-    .video-container {
-      width: 100%;
-      max-width: 480px;
-      aspect-ratio: 9 / 16;
-      background: #000;
-      border-radius: 14px;
-      overflow: hidden;
-      position: relative;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    @media (max-width: 899px) {
-      .video-container {
-        max-width: 100%;
-        max-height: 65vh;
-      }
-    }
-
-    video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      background: #000;
-      display: block;
-    }
-
-    video.fit-cover {
-      object-fit: cover;
-    }
-
-    /* 播放控制增强条 */
-    .player-controls-bar {
-      width: 100%;
-      max-width: 480px;
-      margin-top: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      background: var(--bg-card);
-      padding: 8px 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border-color);
-      flex-wrap: wrap;
-    }
-
-    .ctrl-group {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .ctrl-btn {
-      background: rgba(255, 255, 255, 0.08);
-      border: none;
-      color: #cbd5e1;
-      padding: 5px 9px;
-      border-radius: 6px;
-      font-size: 0.78rem;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .ctrl-btn:hover, .ctrl-btn.active {
-      color: #fff;
-      background: var(--primary);
-    }
-
-    /* 详情和选集面板 */
-    .player-right {
-      width: 100%;
-      background: var(--bg-card);
-      border-radius: 14px;
-      padding: 20px;
-      border: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    @media (min-width: 900px) {
-      .player-right {
-        width: 380px;
-        max-height: calc(100vh - 120px);
-        overflow-y: auto;
-      }
-    }
-
-    .detail-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #fff;
-      line-height: 1.3;
-    }
-
-    .detail-meta {
-      display: flex;
-      align-items: center;
-      gap: 10px;
       font-size: 0.85rem;
       color: var(--text-muted);
-      flex-wrap: wrap;
-    }
-
-    .fav-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      background: var(--primary-light);
-      border: 1px solid var(--primary);
-      color: #fff;
-      padding: 6px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      font-weight: 600;
-    }
-
-    .fav-btn.favorited {
-      background: var(--primary);
-    }
-
-    .detail-intro {
-      font-size: 0.85rem;
-      color: #cbd5e1;
-      line-height: 1.5;
-      background: rgba(0, 0, 0, 0.2);
-      padding: 10px;
-      border-radius: 8px;
-    }
-
-    /* 选集网格 */
-    .episodes-title {
-      font-size: 1rem;
-      font-weight: 600;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .episode-range-tabs {
-      display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      padding-bottom: 6px;
-      scrollbar-width: thin;
-    }
-
-    .range-tab {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border-color);
-      color: var(--text-muted);
-      font-size: 0.78rem;
-      padding: 3px 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .range-tab.active {
-      color: #fff;
-      background: var(--primary);
-      border-color: var(--primary);
-    }
-
-    .episode-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
-      max-height: 320px;
-      overflow-y: auto;
-      padding: 4px;
-    }
-
-    .episode-btn {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--border-color);
-      color: #e2e8f0;
-      padding: 8px 4px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.85rem;
+      min-width: 65px;
       text-align: center;
-      transition: all 0.15s;
     }
 
-    .episode-btn:hover {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: var(--primary);
-    }
-
-    .episode-btn.active {
-      background: var(--primary);
-      color: #fff;
-      font-weight: 700;
-      border-color: var(--primary);
-      box-shadow: 0 0 10px rgba(244, 63, 94, 0.5);
-    }
-
-    .episode-btn.watched:not(.active) {
-      opacity: 0.6;
-    }
-
-    /* 空状态 / 加载状态 */
-    .empty-state, .loading-state {
-      padding: 60px 20px;
-      text-align: center;
+    /* 骨架屏与空状态 */
+    .loading-state, .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
       color: var(--text-muted);
+      gap: 12px;
     }
 
     .spinner {
@@ -616,164 +447,493 @@
       border-top-color: var(--primary);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
-      margin: 0 auto 16px;
     }
 
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
 
-    /* Toast 提示 */
-    .toast {
+    /* 移动端底部导航栏 (PWA 原生体验) */
+    .mobile-tab-bar {
+      display: none;
       position: fixed;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: rgba(15, 23, 42, 0.95);
-      border: 1px solid var(--border-color);
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 9999px;
-      font-size: 0.9rem;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-      z-index: 200;
-      opacity: 0;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      pointer-events: none;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: calc(56px + var(--safe-bottom));
+      padding-bottom: var(--safe-bottom);
+      background: rgba(7, 10, 18, 0.94);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-top: 1px solid var(--border-subtle);
+      z-index: 55;
+      align-items: center;
+      justify-content: space-around;
     }
 
-    .toast.show {
-      transform: translateX(-50%) translateY(0);
+    @media (max-width: 768px) {
+      .desktop-nav {
+        display: none;
+      }
+      .mobile-tab-bar {
+        display: flex;
+      }
+    }
+
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      color: var(--text-dim);
+      font-size: 0.7rem;
+      font-weight: 500;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      flex: 1;
+      height: 100%;
+      transition: color 0.15s ease;
+    }
+
+    .tab-item svg {
+      width: 22px;
+      height: 22px;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.2s;
+    }
+
+    .tab-item.active {
+      color: var(--primary);
+    }
+
+    .tab-item.active svg {
+      transform: scale(1.1);
+      stroke: var(--primary);
+    }
+
+    /* 播放器全屏沉浸视图 */
+    .player-view {
+      position: fixed;
+      inset: 0;
+      background: #05070d;
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .player-view.active {
+      display: flex;
+    }
+
+    /* 播放器顶部条 */
+    .player-top-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      padding: max(12px, var(--safe-top)) 16px 12px 16px;
+      background: linear-gradient(180deg, rgba(5, 7, 13, 0.9) 0%, rgba(5, 7, 13, 0.4) 70%, transparent 100%);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .player-back-btn {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: background 0.2s;
+    }
+
+    .player-back-btn:active {
+      transform: scale(0.92);
+    }
+
+    .player-drama-title {
+      flex: 1;
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #fff;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+    }
+
+    .player-fav-btn {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .player-fav-btn.favorited {
+      background: var(--primary-gradient);
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+
+    /* 播放器核心视频区域 (竖屏 9:16 短剧优化) */
+    .player-body {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      max-width: 520px;
+      max-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+      outline: none;
+    }
+
+    video.fit-cover {
+      object-fit: cover;
+    }
+
+    /* 播放器底部浮动控制栏 (Douyin/ShortMax 风格) */
+    .player-floating-bar {
+      position: absolute;
+      bottom: max(16px, var(--safe-bottom));
+      left: 16px;
+      right: 16px;
+      max-width: 520px;
+      margin: 0 auto;
+      z-index: 25;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      pointer-events: auto;
+    }
+
+    .float-ctrl-pill {
+      background: rgba(15, 21, 35, 0.78);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    .ctrl-action-btn {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      transition: color 0.15s;
+    }
+
+    .ctrl-action-btn:hover {
+      color: var(--primary);
+    }
+
+    .speed-select {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .speed-select option {
+      background: #111827;
+      color: #fff;
+    }
+
+    .btn-open-drawer {
+      background: var(--primary-gradient);
+      border: none;
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 999px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 16px var(--primary-glow);
+      transition: transform 0.15s;
+    }
+
+    .btn-open-drawer:active {
+      transform: scale(0.95);
+    }
+
+    /* 抖音同款：选集半屏抽屉 (Bottom Sheet Drawer) */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      z-index: 120;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .drawer-overlay.active {
+      display: block;
       opacity: 1;
     }
 
-    /* 设置 Modal */
-    .modal-overlay {
-      display: none;
+    .episode-drawer {
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(4px);
-      z-index: 150;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-width: 600px;
+      margin: 0 auto;
+      height: 70vh;
+      max-height: 580px;
+      background: #0d1322;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px 20px 0 0;
+      z-index: 130;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8);
+      padding-bottom: var(--safe-bottom);
+    }
+
+    .episode-drawer.active {
+      transform: translateY(0);
+    }
+
+    .drawer-handle-bar {
+      width: 40px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 999px;
+      margin: 10px auto 4px auto;
+    }
+
+    .drawer-header {
+      padding: 8px 18px 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .drawer-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .drawer-close-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: var(--text-muted);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
     }
 
-    .modal-overlay.active {
+    .drawer-tabs-wrap {
+      padding: 10px 16px;
       display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
     }
 
-    .modal-box {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 14px;
-      max-width: 440px;
-      width: 100%;
-      padding: 22px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+    .drawer-tabs-wrap::-webkit-scrollbar {
+      display: none;
     }
 
-    .modal-title {
-      font-size: 1.15rem;
-      font-weight: 700;
-      margin-bottom: 12px;
+    .range-pill {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
     }
 
-    .modal-input {
-      width: 100%;
-      padding: 8px 12px;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
+    .range-pill.active {
+      background: var(--primary-gradient);
       color: #fff;
-      font-size: 0.9rem;
-      margin-top: 6px;
-      margin-bottom: 16px;
+      border-color: transparent;
+      box-shadow: 0 2px 10px var(--primary-glow);
     }
 
-    .modal-input:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-
-    .modal-actions {
-      display: flex;
-      justify-content: flex-end;
+    .drawer-grid-wrap {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px 20px 16px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
       gap: 10px;
+      align-content: start;
+    }
+
+    @media (min-width: 480px) {
+      .drawer-grid-wrap {
+        grid-template-columns: repeat(6, 1fr);
+      }
+    }
+
+    .ep-num-btn {
+      aspect-ratio: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .ep-num-btn:active {
+      transform: scale(0.92);
+    }
+
+    .ep-num-btn.active {
+      background: var(--primary-gradient);
+      border-color: transparent;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+
+    .ep-num-btn.watched:not(.active) {
+      color: var(--text-dim);
+      background: rgba(255, 255, 255, 0.02);
     }
 
     /* 全屏密码保护锁屏 */
     .lock-screen {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: radial-gradient(circle at 50% 30%, #172138 0%, #090d16 100%);
+      inset: 0;
+      background: radial-gradient(circle at 50% 30%, #151d33 0%, #060912 100%);
       z-index: 9999;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
-      backdrop-filter: blur(24px);
+      padding: 24px;
+      backdrop-filter: blur(28px);
     }
 
     .lock-card {
       width: 100%;
-      max-width: 380px;
-      background: rgba(19, 27, 46, 0.9);
+      max-width: 360px;
+      background: rgba(18, 24, 42, 0.92);
       border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 20px;
-      padding: 36px 28px;
+      border-radius: 24px;
+      padding: 36px 26px;
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
-      animation: lockPopIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+      animation: lockPop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    @keyframes lockPopIn {
-      from { transform: scale(0.92); opacity: 0; }
+    @keyframes lockPop {
+      from { transform: scale(0.9); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
     }
 
-    @keyframes lockShake {
+    @keyframes shake {
       0%, 100% { transform: translateX(0); }
       20%, 60% { transform: translateX(-8px); }
       40%, 80% { transform: translateX(8px); }
     }
 
     .lock-card.shake {
-      animation: lockShake 0.4s ease-in-out;
+      animation: shake 0.4s ease-in-out;
     }
 
-    .lock-icon {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: rgba(244, 63, 94, 0.15);
-      color: var(--primary);
+    .lock-icon-wrap {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      background: var(--primary-gradient);
+      box-shadow: 0 8px 24px var(--primary-glow);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 26px;
-      margin-bottom: 18px;
-      box-shadow: 0 0 24px rgba(244, 63, 94, 0.25);
+      font-size: 28px;
+      margin-bottom: 20px;
     }
 
     .lock-title {
       font-size: 1.25rem;
-      font-weight: 700;
+      font-weight: 800;
       color: #fff;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
-    .lock-subtitle {
-      font-size: 0.85rem;
+    .lock-desc {
+      font-size: 0.82rem;
       color: var(--text-muted);
-      line-height: 1.45;
+      line-height: 1.4;
       margin-bottom: 22px;
     }
 
@@ -787,7 +947,7 @@
       width: 100%;
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 13px 44px 13px 16px;
       font-size: 0.95rem;
       color: #fff;
@@ -797,8 +957,8 @@
 
     .lock-input:focus {
       border-color: var(--primary);
-      background: rgba(255, 255, 255, 0.09);
-      box-shadow: 0 0 0 3px var(--primary-light);
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 0 3px rgba(255, 45, 85, 0.25);
     }
 
     .lock-eye-btn {
@@ -829,18 +989,17 @@
       font-size: 0.82rem;
       color: var(--text-muted);
       cursor: pointer;
-      user-select: none;
     }
 
     .lock-remember-label input[type="checkbox"] {
       accent-color: var(--primary);
-      width: 15px;
-      height: 15px;
+      width: 16px;
+      height: 16px;
     }
 
     .lock-error-msg {
       font-size: 0.82rem;
-      color: #f43f5e;
+      color: #ff3b30;
       min-height: 20px;
       margin-bottom: 12px;
       text-align: left;
@@ -849,25 +1008,47 @@
 
     .lock-submit-btn {
       width: 100%;
-      background: linear-gradient(135deg, #f43f5e, #e11d48);
+      background: var(--primary-gradient);
       border: none;
-      border-radius: 12px;
-      padding: 13px;
+      border-radius: 14px;
+      padding: 14px;
       color: #fff;
       font-size: 0.95rem;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 6px 18px rgba(244, 63, 94, 0.35);
-      transition: all 0.2s;
-    }
-
-    .lock-submit-btn:hover {
-      opacity: 0.92;
-      transform: translateY(-1px);
+      box-shadow: 0 8px 24px var(--primary-glow);
+      transition: transform 0.15s, opacity 0.15s;
     }
 
     .lock-submit-btn:active {
-      transform: translateY(1px);
+      transform: scale(0.97);
+    }
+
+    /* Toast 浮层 */
+    .toast {
+      position: fixed;
+      top: max(20px, var(--safe-top));
+      left: 50%;
+      transform: translateX(-50%) translateY(-30px);
+      background: rgba(20, 26, 42, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(16px);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      z-index: 99999;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
     }
   </style>
 </head>
@@ -876,9 +1057,9 @@
   <!-- 全屏密码保护锁屏 -->
   <div class="lock-screen" id="lockScreen" style="display: none;">
     <div class="lock-card">
-      <div class="lock-icon">🔒</div>
+      <div class="lock-icon-wrap">🔒</div>
       <h2 class="lock-title">私人影院 · 访问保护</h2>
-      <p class="lock-subtitle">本站已开启访问口令保护，请输入访问密码以解锁影视库</p>
+      <p class="lock-desc">本站已开启安全密码保护，请输入访问口令继续</p>
 
       <form onsubmit="app.submitPassword(event)" style="width: 100%;">
         <div class="lock-input-group">
@@ -895,7 +1076,7 @@
         <div class="lock-remember-row">
           <label class="lock-remember-label">
             <input type="checkbox" id="lockRememberCheckbox" checked>
-            <span>在此浏览器上记住密码</span>
+            <span>在此设备记住密码</span>
           </label>
         </div>
 
@@ -908,29 +1089,34 @@
     </div>
   </div>
 
-  <!-- 顶部导航 -->
+  <!-- 顶部导航栏 -->
   <header>
     <a class="brand" href="javascript:void(0)" onclick="app.showHome()">
-      <span class="logo-badge">红果</span>
-      <span>短剧 Web</span>
+      <div class="brand-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><polygon points="6 4 19 12 6 20 6 4"/></svg>
+      </div>
+      <span>红果短剧</span>
     </a>
 
-    <div class="search-bar">
-      <input type="text" id="searchInput" placeholder="搜索短剧名、题材、关键词..." onkeydown="if(event.key==='Enter') app.search()">
-      <button onclick="app.search()" title="搜索">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      </button>
+    <div class="search-box-wrap">
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="搜索短剧名、题材、关键词..." onkeydown="if(event.key==='Enter') app.search()">
+        <button onclick="app.search()" title="搜索">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+      </div>
     </div>
 
-    <div class="nav-actions">
-      <button class="nav-btn active" id="btnNavHome" onclick="app.showHome()">精选</button>
-      <button class="nav-btn" id="btnNavHistory" onclick="app.showHistory()">历史</button>
-      <button class="nav-btn" id="btnNavFavorites" onclick="app.showFavorites()">收藏</button>
-      <button class="nav-btn" id="btnLockApp" onclick="app.lockApp()" title="退出并锁定" style="color:var(--text-muted)">🔒 锁定</button>
+    <!-- 桌面端导航项 -->
+    <div class="desktop-nav">
+      <button class="desktop-nav-btn active" id="btnNavHome" onclick="app.showHome()">精选</button>
+      <button class="desktop-nav-btn" id="btnNavHistory" onclick="app.showHistory()">历史</button>
+      <button class="desktop-nav-btn" id="btnNavFavorites" onclick="app.showFavorites()">收藏</button>
+      <button class="btn-lock" onclick="app.lockApp()" title="退出并锁定">🔒 锁屏</button>
     </div>
   </header>
 
-  <!-- 主内容展示区 -->
+  <!-- 主内容区 -->
   <main>
     <div class="section-header">
       <h2 class="section-title" id="sectionTitle">精选推荐</h2>
@@ -940,7 +1126,7 @@
     <div id="mainContent">
       <div class="loading-state">
         <div class="spinner"></div>
-        <div>加载剧集列表中...</div>
+        <div>加载剧集中...</div>
       </div>
     </div>
 
@@ -952,79 +1138,93 @@
     </div>
   </main>
 
-  <!-- 独立播放与详情视图 -->
+  <!-- 移动端原生 App 底部导航栏 -->
+  <nav class="mobile-tab-bar" id="mobileTabBar">
+    <button class="tab-item active" id="tabHome" onclick="app.showHome()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>精选</span>
+    </button>
+    <button class="tab-item" id="tabSearch" onclick="document.getElementById('searchInput').focus()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span>搜索</span>
+    </button>
+    <button class="tab-item" id="tabHistory" onclick="app.showHistory()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>历史</span>
+    </button>
+    <button class="tab-item" id="tabFavorites" onclick="app.showFavorites()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      <span>收藏</span>
+    </button>
+    <button class="tab-item" id="tabLock" onclick="app.lockApp()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <span>锁屏</span>
+    </button>
+  </nav>
+
+  <!-- 独立播放器沉浸视图 (竖屏短剧深度优化) -->
   <div class="player-view" id="playerView">
-    <div class="player-header">
-      <button class="back-btn" onclick="app.closePlayer()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
-        返回列表
+    <!-- 顶部状态栏 -->
+    <div class="player-top-bar">
+      <button class="player-back-btn" onclick="app.closePlayer()" title="返回列表">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
-      <span id="playerCurrentDramaTitle" style="font-weight:600; font-size:0.95rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;"></span>
-      <button class="fav-btn" id="playerFavBtn" onclick="app.toggleFavorite()">❤️ 收藏</button>
+      <span class="player-drama-title" id="playerCurrentDramaTitle">剧名加载中</span>
+      <button class="player-fav-btn" id="playerFavBtn" onclick="app.toggleFavorite()">
+        <span>❤️ 收藏</span>
+      </button>
     </div>
 
-    <div class="player-layout">
-      <!-- 播放器区域 -->
-      <div class="player-left">
-        <div class="video-container">
-          <video id="videoPlayer" controls playsinline preload="auto"></video>
-        </div>
-
-        <div class="player-controls-bar">
-          <div class="ctrl-group">
-            <span style="font-size:0.75rem; color:var(--text-muted)">倍速:</span>
-            <button class="ctrl-btn active" onclick="app.setSpeed(1.0, this)">1.0x</button>
-            <button class="ctrl-btn" onclick="app.setSpeed(1.25, this)">1.25x</button>
-            <button class="ctrl-btn" onclick="app.setSpeed(1.5, this)">1.5x</button>
-            <button class="ctrl-btn" onclick="app.setSpeed(2.0, this)">2.0x</button>
-          </div>
-          <div class="ctrl-group">
-            <button class="ctrl-btn" onclick="app.playPrevEpisode()">⏮️ 上一集</button>
-            <button class="ctrl-btn" onclick="app.toggleFit(this)">铺满画面</button>
-            <button class="ctrl-btn" onclick="app.playNextEpisode()">下一集 ⏩</button>
-          </div>
-        </div>
+    <!-- 视频播放主体 -->
+    <div class="player-body">
+      <div class="video-wrapper">
+        <video id="videoPlayer" playsinline preload="auto" controls></video>
       </div>
 
-      <!-- 详情与选集 -->
-      <div class="player-right">
-        <div>
-          <h1 class="detail-title" id="dramaDetailTitle">剧名</h1>
-          <div class="detail-meta" id="dramaDetailMeta" style="margin-top: 6px;"></div>
+      <!-- 底部浮动控制栏 -->
+      <div class="player-floating-bar">
+        <div class="float-ctrl-pill">
+          <button class="ctrl-action-btn" onclick="app.playPrevEpisode()" title="上一集">⏮️</button>
+          <select class="speed-select" onchange="app.setSpeed(parseFloat(this.value))" title="倍速">
+            <option value="1.0" selected>1.0x</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2.0">2.0x</option>
+          </select>
+          <button class="ctrl-action-btn" onclick="app.playNextEpisode()" title="下一集">⏭️</button>
         </div>
 
-        <div class="detail-intro" id="dramaDetailIntro">简介</div>
-
-        <div>
-          <div class="episodes-title">
-            <span>选集列表 (<span id="episodesCount">0</span>)</span>
-            <div class="episode-range-tabs" id="rangeTabs"></div>
-          </div>
-          <div class="episode-grid" id="episodeGrid" style="margin-top: 10px;"></div>
-        </div>
+        <button class="btn-open-drawer" onclick="app.openDrawer()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          <span>选集</span>
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- 口令设置模态窗 -->
-  <div class="modal-overlay" id="settingsModal">
-    <div class="modal-box">
-      <h3 class="modal-title">服务访问口令设置</h3>
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">
-        如果您的后端服务设置了 <code>BRIDGE_TOKEN</code>，请在此填入口令；未设置请留空。
-      </p>
-      <input type="text" class="modal-input" id="tokenInput" placeholder="请输入口令 (可选)">
-      <div class="modal-actions">
-        <button class="page-btn" onclick="app.closeSettings()">取消</button>
-        <button class="page-btn" style="background:var(--primary);border-color:var(--primary)" onclick="app.saveSettings()">保存</button>
-      </div>
+  <!-- 抖音/短剧同款：选集半屏抽屉 (Bottom Sheet) -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="app.closeDrawer()"></div>
+  <div class="episode-drawer" id="episodeDrawer">
+    <div class="drawer-handle-bar"></div>
+    <div class="drawer-header">
+      <div class="drawer-title">选集列表 (<span id="drawerTotalCount">0</span>)</div>
+      <button class="drawer-close-btn" onclick="app.closeDrawer()">✕</button>
     </div>
+    <div class="drawer-tabs-wrap" id="drawerRangeTabs"></div>
+    <div class="drawer-grid-wrap" id="drawerGrid"></div>
   </div>
 
-  <!-- Toast 提示 -->
+  <!-- Toast 提示消息 -->
   <div class="toast" id="toast"></div>
 
   <script>
+    // 注册 PWA Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+
     const app = {
       currentPage: 1,
       currentView: 'home', // 'home' | 'search' | 'history' | 'favorites'
@@ -1076,17 +1276,32 @@
         return resp.json();
       },
 
-      // 切换导航高亮
-      setNav(activeId) {
-        document.querySelectorAll('.nav-actions .nav-btn').forEach(btn => btn.classList.remove('active'));
-        if (activeId) document.getElementById(activeId)?.classList.add('active');
+      // 切换导航高亮 (同步更新桌面端与移动端 Dock)
+      setNav(type) {
+        document.querySelectorAll('.desktop-nav-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.mobile-tab-bar .tab-item').forEach(btn => btn.classList.remove('active'));
+
+        const desktopMap = {
+          home: 'btnNavHome',
+          history: 'btnNavHistory',
+          favorites: 'btnNavFavorites'
+        };
+        const mobileMap = {
+          home: 'tabHome',
+          search: 'tabSearch',
+          history: 'tabHistory',
+          favorites: 'tabFavorites'
+        };
+
+        if (desktopMap[type]) document.getElementById(desktopMap[type])?.classList.add('active');
+        if (mobileMap[type]) document.getElementById(mobileMap[type])?.classList.add('active');
       },
 
       // 加载首页精选
       async loadHome(page = 1) {
         this.currentView = 'home';
         this.currentPage = page;
-        this.setNav('btnNavHome');
+        this.setNav('home');
         document.getElementById('sectionTitle').textContent = '精选推荐';
         document.getElementById('sectionExtra').innerHTML = '';
         this.renderLoading();
@@ -1115,9 +1330,9 @@
         this.currentView = 'search';
         this.searchKeyword = keyword;
         this.currentPage = page;
-        this.setNav(null);
-        document.getElementById('sectionTitle').textContent = `搜索结果: "${keyword}"`;
-        document.getElementById('sectionExtra').innerHTML = `<button class="page-btn" style="padding:4px 10px;font-size:0.8rem;" onclick="app.showHome()">清空搜索</button>`;
+        this.setNav('search');
+        document.getElementById('sectionTitle').textContent = `搜索: "${keyword}"`;
+        document.getElementById('sectionExtra').innerHTML = `<button class="page-btn" style="padding:4px 12px;font-size:0.75rem;" onclick="app.showHome()">清空</button>`;
         this.renderLoading();
 
         try {
@@ -1172,15 +1387,15 @@
         const btn = document.getElementById('playerFavBtn');
         if (!this.currentSeries || !btn) return;
         const fav = this.isFavorited(this.currentSeries.id);
-        btn.textContent = fav ? '❤️ 已收藏' : '🤍 收藏';
+        btn.innerHTML = fav ? '<span>❤️ 已收藏</span>' : '<span>🤍 收藏</span>';
         btn.classList.toggle('favorited', fav);
       },
 
       showHistory() {
         this.currentView = 'history';
-        this.setNav('btnNavHistory');
-        document.getElementById('sectionTitle').textContent = '最近观看历史';
-        document.getElementById('sectionExtra').innerHTML = `<button class="page-btn" style="padding:4px 10px;font-size:0.8rem;" onclick="app.clearHistory()">清空历史</button>`;
+        this.setNav('history');
+        document.getElementById('sectionTitle').textContent = '观看历史';
+        document.getElementById('sectionExtra').innerHTML = `<button class="page-btn" style="padding:4px 12px;font-size:0.75rem;" onclick="app.clearHistory()">清空</button>`;
         document.getElementById('paginationWrap').style.display = 'none';
         const list = this.getHistory();
         if (!list.length) {
@@ -1194,13 +1409,13 @@
         if (confirm('确认清空所有观看历史吗？')) {
           localStorage.removeItem('hongguo_history');
           this.showHistory();
-          this.toast('观看记录已清空');
+          this.toast('历史已清空');
         }
       },
 
       showFavorites() {
         this.currentView = 'favorites';
-        this.setNav('btnNavFavorites');
+        this.setNav('favorites');
         document.getElementById('sectionTitle').textContent = '我的收藏';
         document.getElementById('sectionExtra').innerHTML = '';
         document.getElementById('paginationWrap').style.display = 'none';
@@ -1239,30 +1454,30 @@
         document.getElementById('mainContent').innerHTML = `
           <div class="loading-state">
             <div class="spinner"></div>
-            <div>数据加载中...</div>
+            <div>载入精彩短剧中...</div>
           </div>`;
       },
       renderEmpty(msg = '暂无相关短剧') {
         document.getElementById('mainContent').innerHTML = `
           <div class="empty-state">
-            <div style="font-size:2.5rem;margin-bottom:10px;">🎬</div>
+            <div style="font-size:2.5rem;margin-bottom:6px;">🎬</div>
             <div>${msg}</div>
           </div>`;
       },
       renderError(msg) {
         document.getElementById('mainContent').innerHTML = `
           <div class="empty-state">
-            <div style="font-size:2.5rem;margin-bottom:10px;color:var(--primary);">⚠️</div>
-            <div style="color:#fff;font-weight:600;margin-bottom:6px;">出错了</div>
-            <div style="font-size:0.85rem;">${msg}</div>
-            <button class="page-btn" style="margin-top:16px;" onclick="app.loadHome(1)">重试首页</button>
+            <div style="font-size:2.5rem;margin-bottom:6px;color:var(--primary);">⚠️</div>
+            <div style="color:#fff;font-weight:700;">加载失败</div>
+            <div style="font-size:0.82rem;color:var(--text-muted);">${msg}</div>
+            <button class="page-btn" style="margin-top:14px;" onclick="app.loadHome(1)">重试首页</button>
           </div>`;
       },
 
       // 渲染剧集列表
       renderGrid(items) {
         if (!items || !items.length) {
-          this.renderEmpty(this.currentView === 'search' ? '未找到相关剧集，请尝试更换关键词' : '暂无内容');
+          this.renderEmpty(this.currentView === 'search' ? '未找到相关剧集，请更换关键词' : '暂无内容');
           return;
         }
         const grid = document.createElement('div');
@@ -1273,17 +1488,22 @@
           card.className = 'drama-card';
           card.onclick = () => this.openDrama(item.id);
 
-          const fallbackCover = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="280" fill="%231e293b"><rect width="200" height="280"/><text x="50%" y="50%" fill="%2364748b" font-size="14" text-anchor="middle" dominant-baseline="middle">暂无海报</text></svg>';
+          const fallbackCover = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="280" fill="%23111827"><rect width="200" height="280"/><text x="50%" y="50%" fill="%234b5563" font-size="14" text-anchor="middle" dominant-baseline="middle">海报加载中</text></svg>';
 
           card.innerHTML = `
             <div class="drama-cover-wrap">
               <img class="drama-cover" src="${item.cover || fallbackCover}" alt="${item.title}" loading="lazy" onerror="this.onerror=null;this.src='${fallbackCover}'">
+              <div class="cover-gradient"></div>
               ${item.badge ? `<span class="drama-badge">${item.badge}</span>` : ''}
+              <div class="play-icon-overlay">
+                <div class="play-icon-circle">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><polygon points="6 4 19 12 6 20 6 4"/></svg>
+                </div>
+              </div>
             </div>
             <div class="drama-info">
               <h3 class="drama-title" title="${item.title}">${item.title}</h3>
               ${item.tags ? `<p class="drama-tags">${item.tags}</p>` : ''}
-              ${item.description ? `<p class="drama-desc">${item.description}</p>` : ''}
             </div>`;
           grid.appendChild(card);
         });
@@ -1294,43 +1514,35 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
       },
 
-      // 打开剧集详情与播放
+      // 打开剧集并起播
       async openDrama(seriesId) {
-        this.toast('正在载入剧集与分集...');
+        this.toast('正在加载剧集...');
         try {
           const detail = await this.fetchApi(`/api/series/${seriesId}`);
-          this.currentSeries = detail;
-          this.currentEpisodes = detail.episodes || [];
-          if (!this.currentEpisodes.length) {
-            this.toast('该剧暂无可用分集');
-            return;
+          if (!detail || !detail.episodes || !detail.episodes.length) {
+            throw new Error('该剧集暂无可播放分集');
           }
 
-          // 填充详情信息
-          document.getElementById('dramaDetailTitle').textContent = detail.title;
-          document.getElementById('playerCurrentDramaTitle').textContent = detail.title;
-          document.getElementById('dramaDetailMeta').innerHTML = `
-            <span>${detail.badge || `全 ${this.currentEpisodes.length} 集`}</span>
-            ${detail.tags ? `<span>•</span><span>${detail.tags}</span>` : ''}`;
-          document.getElementById('dramaDetailIntro').textContent = detail.description || '暂无简介';
-          document.getElementById('episodesCount').textContent = this.currentEpisodes.length;
+          this.currentSeries = detail;
+          this.currentEpisodes = detail.episodes;
+          document.getElementById('drawerTotalCount').textContent = detail.episodes.length;
 
-          this.updateFavButton();
-
-          // 检查历史续播记录
+          // 恢复历史进度
           const historyList = this.getHistory();
-          const lastWatched = historyList.find(h => h.id === seriesId);
+          const record = historyList.find(h => h.id === seriesId);
           let targetIndex = 0;
           let startTime = 0;
-          if (lastWatched && typeof lastWatched.episodeIndex === 'number' && lastWatched.episodeIndex < this.currentEpisodes.length) {
-            targetIndex = lastWatched.episodeIndex;
-            startTime = lastWatched.currentTime || 0;
+          if (record && record.episodeIndex < detail.episodes.length) {
+            targetIndex = record.episodeIndex;
+            startTime = record.currentTime || 0;
           }
 
-          this.renderEpisodeTabs();
-          this.renderEpisodeButtons(targetIndex);
+          this.currentRangeIndex = Math.floor(targetIndex / this.rangeSize);
+          this.renderDrawerTabs();
+          this.renderDrawerButtons(targetIndex);
+          this.updateFavButton();
 
-          // 显示播放页面
+          // 显示播放器全屏
           document.getElementById('playerView').classList.add('active');
           document.body.style.overflow = 'hidden';
 
@@ -1353,10 +1565,10 @@
         const streamUrl = `/api/episodes/${episode.id}/stream${tokenQuery}`;
         video.src = streamUrl;
 
-        document.getElementById('playerCurrentDramaTitle').textContent = `${this.currentSeries.title} - ${episode.title || `第 ${index + 1} 集`}`;
+        document.getElementById('playerCurrentDramaTitle').textContent = `${this.currentSeries.title} · ${episode.title || `第 ${index + 1} 集`}`;
 
-        // 重新高亮按钮
-        document.querySelectorAll('.episode-btn').forEach((btn, i) => {
+        // 重新高亮抽屉按钮
+        document.querySelectorAll('.ep-num-btn').forEach((btn, i) => {
           const globalIdx = this.currentRangeIndex * this.rangeSize + i;
           btn.classList.toggle('active', globalIdx === index);
           if (globalIdx === index) btn.classList.add('watched');
@@ -1366,9 +1578,7 @@
           video.currentTime = resumeTime;
         }
 
-        video.play().catch(() => {
-          // 浏览器自动播放策略限制
-        });
+        video.play().catch(() => {});
 
         // 记录历史
         this.saveHistory({
@@ -1391,11 +1601,11 @@
           const prevRange = Math.floor(prevIndex / this.rangeSize);
           if (prevRange !== this.currentRangeIndex) {
             this.currentRangeIndex = prevRange;
-            this.renderEpisodeTabs();
-            this.renderEpisodeButtons(prevIndex);
+            this.renderDrawerTabs();
+            this.renderDrawerButtons(prevIndex);
           }
           this.playEpisode(prevIndex);
-          this.toast(`正在播放上一集 (第 ${prevIndex + 1} 集)`);
+          this.toast(`上一集 (第 ${prevIndex + 1} 集)`);
         } else {
           this.toast('已经是第一集了');
         }
@@ -1404,24 +1614,32 @@
       playNextEpisode() {
         if (this.currentEpisodeIndex + 1 < this.currentEpisodes.length) {
           const nextIndex = this.currentEpisodeIndex + 1;
-          // 若跨越了分组区间，切换 tab
           const nextRange = Math.floor(nextIndex / this.rangeSize);
           if (nextRange !== this.currentRangeIndex) {
             this.currentRangeIndex = nextRange;
-            this.renderEpisodeTabs();
-            this.renderEpisodeButtons(nextIndex);
+            this.renderDrawerTabs();
+            this.renderDrawerButtons(nextIndex);
           }
           this.playEpisode(nextIndex);
-          this.toast(`正在播放下一集 (第 ${nextIndex + 1} 集)`);
+          this.toast(`下一集 (第 ${nextIndex + 1} 集)`);
         } else {
           this.toast('已经是最后一集了');
         }
       },
 
-      // 选集分页 Tab 渲染 (1-30, 31-60...)
-      renderEpisodeTabs() {
+      // 选集半屏抽屉控制
+      openDrawer() {
+        document.getElementById('drawerOverlay').classList.add('active');
+        document.getElementById('episodeDrawer').classList.add('active');
+      },
+      closeDrawer() {
+        document.getElementById('drawerOverlay').classList.remove('active');
+        document.getElementById('episodeDrawer').classList.remove('active');
+      },
+
+      renderDrawerTabs() {
         const total = this.currentEpisodes.length;
-        const container = document.getElementById('rangeTabs');
+        const container = document.getElementById('drawerRangeTabs');
         container.innerHTML = '';
         if (total <= this.rangeSize) return;
 
@@ -1429,47 +1647,48 @@
         for (let i = 0; i < count; i++) {
           const start = i * this.rangeSize + 1;
           const end = Math.min((i + 1) * this.rangeSize, total);
-          const tab = document.createElement('button');
-          tab.className = `range-tab ${i === this.currentRangeIndex ? 'active' : ''}`;
-          tab.textContent = `${start}-${end}`;
-          tab.onclick = () => {
+          const pill = document.createElement('button');
+          pill.className = `range-pill ${i === this.currentRangeIndex ? 'active' : ''}`;
+          pill.textContent = `${start}-${end}`;
+          pill.onclick = () => {
             this.currentRangeIndex = i;
-            this.renderEpisodeTabs();
-            this.renderEpisodeButtons(this.currentEpisodeIndex);
+            this.renderDrawerTabs();
+            this.renderDrawerButtons(this.currentEpisodeIndex);
           };
-          container.appendChild(tab);
+          container.appendChild(pill);
         }
       },
 
-      // 渲染当前区间内的选集按钮
-      renderEpisodeButtons(activeGlobalIndex) {
-        const container = document.getElementById('episodeGrid');
+      renderDrawerButtons(activeGlobalIndex) {
+        const container = document.getElementById('drawerGrid');
         container.innerHTML = '';
         const start = this.currentRangeIndex * this.rangeSize;
         const end = Math.min(start + this.rangeSize, this.currentEpisodes.length);
 
         for (let i = start; i < end; i++) {
           const btn = document.createElement('button');
-          btn.className = `episode-btn ${i === activeGlobalIndex ? 'active' : ''}`;
+          btn.className = `ep-num-btn ${i === activeGlobalIndex ? 'active' : ''}`;
           btn.textContent = i + 1;
           btn.title = this.currentEpisodes[i].title || `第 ${i + 1} 集`;
-          btn.onclick = () => this.playEpisode(i);
+          btn.onclick = () => {
+            this.playEpisode(i);
+            this.closeDrawer();
+          };
           container.appendChild(btn);
         }
       },
 
-      // 视频相关事件与控制
+      // 视频控制与监听
       setupVideoEvents() {
-        const video = document.getElementById('videoPlayer');
-        // 自动连播
+        const video = this.getVideo();
+        if (!video) return;
+
         video.addEventListener('ended', () => {
           this.playNextEpisode();
         });
 
-        // 定时保存播放进度
         video.addEventListener('timeupdate', () => {
           if (!this.currentSeries || video.currentTime < 1) return;
-          // 每隔 5 秒存储一次本地播放进度
           if (Math.floor(video.currentTime) % 5 === 0) {
             this.saveHistory({
               id: this.currentSeries.id,
@@ -1486,7 +1705,7 @@
           }
         });
 
-        // 播放失败提示
+        // 播放失败精准诊断
         video.addEventListener('error', async () => {
           if (video.src) {
             try {
@@ -1502,27 +1721,20 @@
         });
       },
 
-      setSpeed(rate, btn) {
-        const video = document.getElementById('videoPlayer');
-        video.playbackRate = rate;
-        document.querySelectorAll('.player-controls-bar .ctrl-btn').forEach(b => {
-          if (b.textContent.includes('x')) b.classList.remove('active');
-        });
-        btn.classList.add('active');
-      },
-
-      toggleFit(btn) {
-        const video = document.getElementById('videoPlayer');
-        const isCover = video.classList.toggle('fit-cover');
-        btn.classList.toggle('active', isCover);
-        btn.textContent = isCover ? '原始比例' : '铺满画面';
+      setSpeed(rate) {
+        const video = this.getVideo();
+        if (video) video.playbackRate = rate;
+        this.toast(`倍速已设为 ${rate}x`);
       },
 
       closePlayer() {
-        const video = document.getElementById('videoPlayer');
-        video.pause();
-        video.src = '';
+        const video = this.getVideo();
+        if (video) {
+          video.pause();
+          video.src = '';
+        }
         document.getElementById('playerView').classList.remove('active');
+        this.closeDrawer();
         document.body.style.overflow = '';
       },
 
@@ -1607,23 +1819,6 @@
         localStorage.removeItem('hongguo_token');
         this.showLockScreen('已退出登录，请输入密码重新进入');
         this.toast('影院已锁定');
-      },
-
-      // 口令设置
-      openSettings() {
-        document.getElementById('tokenInput').value = this.token;
-        document.getElementById('settingsModal').classList.add('active');
-      },
-      closeSettings() {
-        document.getElementById('settingsModal').classList.remove('active');
-      },
-      saveSettings() {
-        const val = document.getElementById('tokenInput').value.trim();
-        this.token = val;
-        localStorage.setItem('hongguo_token', val);
-        this.closeSettings();
-        this.toast('口令已保存');
-        this.loadHome(1);
       }
     };
 
