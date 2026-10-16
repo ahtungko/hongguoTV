@@ -113,11 +113,23 @@ class HomeScreen(
             horizontal.addView(line); block.addView(horizontal)
             val rowCards=mutableListOf<Card>()
             fun addCard(entry: Entry?,moreAction: (() -> Unit)?=null) {
-                val width=((resources.displayMetrics.widthPixels*.9f-dp(70))/6).toInt().coerceAtLeast(dp(100))
+                val isPortrait=resources.configuration.orientation==android.content.res.Configuration.ORIENTATION_PORTRAIT
+                val width=if(isPortrait) ((resources.displayMetrics.widthPixels-dp(44))/2.4f).toInt()
+                          else ((resources.displayMetrics.widthPixels*.9f-dp(70))/6).toInt().coerceAtLeast(dp(100))
                 val key=if(entry!=null) "${shelf.key}:${entry.series.id}" else "${shelf.key}:more"
                 val view=LinearLayout(context).apply { orientation=VERTICAL; id=View.generateViewId(); tag=key; isFocusable=true; isFocusableInTouchMode=true; setPadding(dp(4),dp(4),dp(4),dp(8)); background=shape(false) }
-                val image=if(entry!=null) ImageView(context).apply { scaleType=ImageView.ScaleType.FIT_CENTER; importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO } else null
-                view.addView(image ?: label("›",36f).apply { gravity=Gravity.CENTER },LayoutParams(-1,((width-dp(8))/TvStyle.POSTER_ASPECT).toInt()))
+                val image=if(entry!=null) ImageView(context).apply { scaleType=if(isPortrait) ImageView.ScaleType.CENTER_CROP else ImageView.ScaleType.FIT_CENTER; importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO } else null
+                val posterHeight=((width-dp(8))/TvStyle.POSTER_ASPECT).toInt()
+                val posterWrap=FrameLayout(context).apply {
+                    if(image!=null) addView(image,LayoutParams(-1,-1))
+                    else addView(label("›",36f).apply { gravity=Gravity.CENTER },LayoutParams(-1,-1))
+                    background=GradientDrawable().apply {
+                        cornerRadius=dp(12).toFloat()
+                        setColor(Color.rgb(20,27,45))
+                    }
+                    clipToOutline=true
+                }
+                view.addView(posterWrap,LayoutParams(-1,posterHeight))
                 val title=label(entry?.series?.title ?: "查看全部",14f).apply { minLines=2; maxLines=2; ellipsize=TextUtils.TruncateAt.END; setPadding(dp(3),dp(5),dp(3),0) }
                 val badge=label(entry?.label ?: shelf.title,12f,TvStyle.muted).apply { minLines=1; maxLines=1; ellipsize=TextUtils.TruncateAt.END; setPadding(dp(3),dp(2),0,0) }
                 val progress=ProgressBar(context,null,android.R.attr.progressBarStyleHorizontal).apply { max=100; progress=entry?.progress ?: 0; visibility=if(entry?.progress==null) INVISIBLE else VISIBLE; progressTintList=android.content.res.ColorStateList.valueOf(accent) }
@@ -247,8 +259,9 @@ class HomeScreen(
                 val view=item.view.getChildAt(child); val params=view.layoutParams as LayoutParams
                 view.measuredHeight+params.topMargin+params.bottomMargin
             } }
+            val isPortrait=resources.configuration.orientation==android.content.res.Configuration.ORIENTATION_PORTRAIT
             val desired=((row.cards.first().view.width-dp(8))/TvStyle.POSTER_ASPECT).toInt()
-            val imageHeight=minOf(desired,(height-row.block.getChildAt(0).measuredHeight-textHeight-dp(8)).coerceAtLeast(dp(48)))
+            val imageHeight=if(isPortrait) desired else minOf(desired,(height-row.block.getChildAt(0).measuredHeight-textHeight-dp(8)).coerceAtLeast(dp(48)))
             row.cards.forEach { card -> card.view.getChildAt(0).let { artwork -> if(artwork.layoutParams.height!=imageHeight) artwork.layoutParams=artwork.layoutParams.apply { height=imageHeight } } }
         }
     }
