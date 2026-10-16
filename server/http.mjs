@@ -73,9 +73,13 @@ export function createServer(provider, token = "") {
         const content = await fs.readFile(filePath);
         const ext = path.extname(filePath).toLowerCase();
         const mime = MIME_TYPES[ext] || "application/octet-stream";
+        const isHtmlOrSw = fileName === "index.html" || fileName === "sw.js";
         res.writeHead(200, {
           "Content-Type": mime,
-          "Cache-Control": fileName === "sw.js" ? "no-cache" : "max-age=3600",
+          "Cache-Control": isHtmlOrSw
+            ? "no-cache, no-store, must-revalidate"
+            : "public, max-age=86400",
+          "Pragma": isHtmlOrSw ? "no-cache" : "public",
           ...corsHeaders,
         });
         if (req.method === "HEAD") return res.end();

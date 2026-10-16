@@ -216,6 +216,29 @@
       border-radius: 2px;
     }
 
+    .section-refresh-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      padding: 5px 12px;
+      color: var(--text-dim);
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .section-refresh-btn:hover, .section-refresh-btn:active {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: scale(0.97);
+    }
+
     /* 剧集网格 (Mobile-first: 移动端自适应 2~3 列，桌面端 4~6 列) */
     .drama-grid {
       display: grid;
@@ -1478,10 +1501,43 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // 注册 PWA Service Worker
+    // 注册 PWA Service Worker 并开启全自动版本热更新检测
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      window.addEventListener('load', async () => {
+        try {
+          const reg = await navigator.serviceWorker.register('/sw.js');
+          
+          // 启动与每次切换回前台时，主动向服务端检测 sw.js 更新
+          reg.update().catch(() => {});
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+              reg.update().catch(() => {});
+            }
+          });
+
+          // 监听新版本 Service Worker 安装
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            if (!newWorker) return;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                newWorker.postMessage('SKIP_WAITING');
+                if (window.app?.toast) {
+                  window.app.toast('✨ 发现新版本，正在为您自动更新...');
+                }
+              }
+            });
+          });
+        } catch (err) {}
+      });
+
+      // 当 Service Worker 控制权转移（新版激活生效），自动无感刷新页面
+      let swRefreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!swRefreshing) {
+          swRefreshing = true;
+          window.location.reload();
+        }
       });
     }
 
@@ -1535,6 +1591,32 @@
         setTimeout(() => el.classList.remove('show'), 2500);
       },
 
+      // 检查更新与强制刷新缓存 (彻底解决手机 PWA 不自动更新问题)
+      async checkForUpdate(manual = false) {
+        if (manual) this.toast('正在检查最新版本...');
+        try {
+          if ('serviceWorker' in navigator) {
+            const reg = await navigator.serviceWorker.getRegistration();
+            if (reg) {
+              await reg.update();
+            }
+          }
+          if (manual) {
+            // 清理 Cache Storage 强制抓取服务端最新代码
+            if ('caches' in window) {
+              const keys = await caches.keys();
+              await Promise.all(keys.map(k => caches.delete(k)));
+            }
+            this.toast('✨ 正在加载最新版本...');
+            setTimeout(() => {
+              window.location.reload();
+            }, 400);
+          }
+        } catch (e) {
+          if (manual) window.location.reload();
+        }
+      },
+
       // 通用 API 请求封装
       async fetchApi(endpoint) {
         const headers = {};
@@ -1580,7 +1662,12 @@
         this.currentPage = page;
         this.setNav('home');
         document.getElementById('sectionTitle').textContent = '精选推荐';
-        document.getElementById('sectionExtra').innerHTML = '';
+        document.getElementById('sectionExtra').innerHTML = `
+          <button class="section-refresh-btn" onclick="app.checkForUpdate(true)" title="检查更新与刷新">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            <span>检查更新</span>
+          </button>
+        `;
         this.renderLoading();
 
         try {
@@ -1706,7 +1793,12 @@
         this.currentView = 'favorites';
         this.setNav('favorites');
         document.getElementById('sectionTitle').textContent = '我的收藏';
-        document.getElementById('sectionExtra').innerHTML = '';
+        document.getElementById('sectionExtra').innerHTML = `
+          <button class="section-refresh-btn" onclick="app.checkForUpdate(true)" title="检查更新与刷新">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            <span>检查更新</span>
+          </button>
+        `;
         document.getElementById('paginationWrap').style.display = 'none';
         const list = this.getFavorites();
         if (!list.length) {
