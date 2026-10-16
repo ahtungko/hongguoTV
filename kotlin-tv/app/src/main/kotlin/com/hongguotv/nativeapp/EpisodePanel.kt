@@ -5,9 +5,7 @@ import android.app.Activity
 import android.app.Dialog
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
-import android.view.Gravity
-import android.view.View
-import android.view.Window
+import android.view.*
 import android.widget.*
 
 /** A remote-accessible side panel; selecting a number is the only action that changes episodes. */
