@@ -179,24 +179,7 @@
       box-shadow: 0 4px 14px var(--primary-glow);
     }
 
-    .btn-lock {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-muted);
-      padding: 6px 12px;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      transition: all 0.2s;
-    }
 
-    .btn-lock:hover {
-      color: #fff;
-      border-color: rgba(255, 255, 255, 0.2);
-    }
 
     /* 主体内容 */
     main {
@@ -1219,7 +1202,6 @@
       <button class="desktop-nav-btn active" id="btnNavHome" onclick="app.showHome()">精选</button>
       <button class="desktop-nav-btn" id="btnNavHistory" onclick="app.showHistory()">历史</button>
       <button class="desktop-nav-btn" id="btnNavFavorites" onclick="app.showFavorites()">收藏</button>
-      <button class="btn-lock" onclick="app.lockApp()" title="退出并锁定">🔒 锁屏</button>
     </div>
   </header>
 
@@ -1245,7 +1227,7 @@
     </div>
   </main>
 
-  <!-- 移动端原生 App 底部导航栏 -->
+  <!-- 移动端原生 App 底部导航栏 (精选/搜索/历史/收藏 4 栏清爽布局) -->
   <nav class="mobile-tab-bar" id="mobileTabBar">
     <button class="tab-item active" id="tabHome" onclick="app.showHome()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -1262,10 +1244,6 @@
     <button class="tab-item" id="tabFavorites" onclick="app.showFavorites()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
       <span>收藏</span>
-    </button>
-    <button class="tab-item" id="tabLock" onclick="app.lockApp()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      <span>锁屏</span>
     </button>
   </nav>
 
