@@ -2,7 +2,9 @@
 package com.hongguotv.nativeapp
 
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.KeyEvent

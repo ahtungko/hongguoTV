@@ -373,8 +373,8 @@ class MainActivity: Activity() {
         invalidatePage(); screen="catalog"; releaseCatalogViews(); val container=base()
         if(foreground && library.isLoaded && !favoriteMonitor.running) main.post { if(foreground && screen=="catalog") favoriteMonitor.check() }
         val isPortrait=resources.configuration.orientation==android.content.res.Configuration.ORIENTATION_PORTRAIT
+        val top=row().apply { setPadding(0,0,0,dp(8)) }
         if(isPortrait) {
-            val top=row().apply { setPadding(0,0,0,dp(8)) }
             val brand=row()
             brand.addView(ImageView(this).apply {
                 setImageResource(com.hongguotv.nativeapp.R.drawable.app_icon)
@@ -383,7 +383,7 @@ class MainActivity: Activity() {
             top.addView(brand,lp(0,dp(38)).apply { weight=1f })
 
             val typeToggle=button(library.contentType.label,selected=true) {
-                val next=if(library.contentType==ContentType.DRAMA) ContentType.COMIC else ContentType.DRAMA
+                val next=if(library.contentType==ContentType.SHORT) ContentType.COMIC else ContentType.SHORT
                 switchContentType(next)
             }.apply {
                 textSize=12f; minHeight=dp(30); setPadding(dp(12),dp(4),dp(12),dp(4))
@@ -404,7 +404,6 @@ class MainActivity: Activity() {
             top.addView(settingsBtn,lp(-2,dp(30)))
             container.addView(top)
         } else {
-            val top=row().apply { setPadding(0,0,0,dp(8)) }
             val brand=row()
             brand.addView(ImageView(this).apply { setImageResource(com.hongguotv.nativeapp.R.drawable.app_icon) },lp(dp(28),dp(28)).apply { rightMargin=dp(9) })
             brand.addView(text("红果",22f).apply { typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL) })
@@ -1061,14 +1060,16 @@ class MainActivity: Activity() {
                 setPadding(dp(4),dp(4),dp(4),dp(4))
             }
             rightSidebarView=rightSidebar
-            fun makeDouyinAction(iconText: String, labelText: String, isAccent: Boolean = false, onClick: () -> Unit): Pair<LinearLayout, Pair<TextView, TextView>> {
-                val col = LinearLayout(this).apply {
+            fun makeDouyinAction(iconText: String, labelText: String, isAccent: Boolean = false, onClick: (LinearLayout, TextView) -> Unit): Pair<LinearLayout, Pair<TextView, TextView>> {
+                lateinit var col: LinearLayout
+                lateinit var circle: TextView
+                col = LinearLayout(this).apply {
                     orientation = LinearLayout.VERTICAL
                     gravity = Gravity.CENTER_HORIZONTAL
-                    setOnClickListener { onClick() }
+                    setOnClickListener { onClick(col, circle) }
                     setPadding(0, 0, 0, dp(14))
                 }
-                val circle = TextView(this).apply {
+                circle = TextView(this).apply {
                     text = iconText; textSize = 13f
                     setTextColor(if (isAccent) Color.rgb(255, 45, 85) else Color.WHITE)
                     setTypeface(null, Typeface.BOLD)
@@ -1091,7 +1092,7 @@ class MainActivity: Activity() {
             }
 
             val isFavInit = library.favorite(data.series.id)
-            val (favCol, favViews) = makeDouyinAction(if(isFavInit) "♥" else "♡", if(isFavInit) "已追" else "追剧", isFavInit) {
+            val (favCol, favViews) = makeDouyinAction(if(isFavInit) "♥" else "♡", if(isFavInit) "已追" else "追剧", isFavInit) { _, _ ->
                 favoriteMonitor.stop()
                 val saved = library.toggle(data.series)
                 if(saved) library.observeFavorite(data.series.id, data.episodes.size, System.currentTimeMillis(), acknowledge = true)
@@ -1102,34 +1103,34 @@ class MainActivity: Activity() {
             sidebarFavLabelView = favViews.second
             rightSidebar.addView(favCol)
 
-            val (epCol, epViews) = makeDouyinAction("第${episodeIndex+1}集", "选集") { showEpisodePanel(it) }
+            val (epCol, epViews) = makeDouyinAction("第${episodeIndex+1}集", "选集") { v, _ -> showEpisodePanel(v) }
             sidebarEpisodeText = epViews.first
             rightSidebar.addView(epCol)
 
-            val (speedCol, speedViews) = makeDouyinAction("${library.playbackSpeed}x", "倍速", library.playbackSpeed != 1.0f) {
+            val (speedCol, speedViews) = makeDouyinAction("${library.playbackSpeed}x", "倍速", library.playbackSpeed != 1.0f) { _, circle ->
                 val speeds = listOf(1.0f, 1.25f, 1.5f, 2.0f)
                 val cur = library.playbackSpeed
                 val next = speeds[(speeds.indexOf(cur).coerceAtLeast(0) + 1) % speeds.size]
                 library.playbackSpeed = next
                 player?.setPlaybackSpeed(next)
-                speedViews.first.text = "${next}x"
-                speedViews.first.setTextColor(if(next != 1.0f) Color.rgb(255, 45, 85) else Color.WHITE)
+                circle.text = "${next}x"
+                circle.setTextColor(if(next != 1.0f) Color.rgb(255, 45, 85) else Color.WHITE)
                 Toast.makeText(this@MainActivity, "倍速已切换至 ${next}x", Toast.LENGTH_SHORT).show()
                 updatePlaybackText()
             }
             sidebarSpeedText = speedViews.first
             rightSidebar.addView(speedCol)
 
-            val (aspectCol, aspectViews) = makeDouyinAction(if(library.frameMode == VideoFrameMode.ZOOM) "铺满" else "适应", "画面") {
+            val (aspectCol, aspectViews) = makeDouyinAction(if(library.frameMode == VideoFrameMode.ZOOM) "铺满" else "适应", "画面") { _, circle ->
                 library.frameMode = if(library.frameMode == VideoFrameMode.ZOOM) VideoFrameMode.FIT else VideoFrameMode.ZOOM
                 playerView?.resizeMode = frameResizeMode()
-                aspectViews.first.text = if(library.frameMode == VideoFrameMode.ZOOM) "铺满" else "适应"
+                circle.text = if(library.frameMode == VideoFrameMode.ZOOM) "铺满" else "适应"
                 Toast.makeText(this@MainActivity, if(library.frameMode == VideoFrameMode.ZOOM) "等比铺满 (抖音全屏模式)" else "完整画面", Toast.LENGTH_SHORT).show()
             }
             sidebarAspectText = aspectViews.first
             rightSidebar.addView(aspectCol)
 
-            val (cleanCol, _) = makeDouyinAction("清屏", "清屏") {
+            val (cleanCol, _) = makeDouyinAction("清屏", "清屏") { _, _ ->
                 hidePlaybackOverlay()
                 Toast.makeText(this@MainActivity, "已开启清屏，轻点屏幕唤出菜单", Toast.LENGTH_SHORT).show()
             }
