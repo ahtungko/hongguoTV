@@ -223,12 +223,13 @@ export function createServer(provider, token = "") {
           event: "request_failed",
           path: url.pathname,
           code: error.code || "UPSTREAM_ERROR",
+          message: error.message,
         })
       );
       if (res.headersSent) res.destroy();
       else
         json(502, {
-          error: "内容源暂不可用，请稍后重试；服务连通不代表内容源可用",
+          error: `上游解析失败: ${error.message || error.code || "UPSTREAM_ERROR"}`,
         });
     }
   });

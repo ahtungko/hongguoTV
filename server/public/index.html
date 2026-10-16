@@ -1487,9 +1487,17 @@
         });
 
         // 播放失败提示
-        video.addEventListener('error', () => {
+        video.addEventListener('error', async () => {
           if (video.src) {
-            this.toast('视频加载失败，正在尝试刷新...');
+            try {
+              const res = await fetch(video.src);
+              if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                this.toast(data.error || `视频加载失败 (HTTP ${res.status})`);
+                return;
+              }
+            } catch {}
+            this.toast('视频加载失败，请检查网络');
           }
         });
       },
