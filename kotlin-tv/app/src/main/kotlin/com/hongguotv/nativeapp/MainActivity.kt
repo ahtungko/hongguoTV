@@ -521,6 +521,7 @@ class MainActivity: Activity() {
                     if(resumeCards.isNotEmpty()) resumeCards.first().requestFocus()
                 }
             })
+        } else catalogGrid(body,focusNav,focusType)
         if(isPortrait) {
             val bottomBar=LinearLayout(this).apply {
                 orientation=LinearLayout.HORIZONTAL
@@ -566,16 +567,6 @@ class MainActivity: Activity() {
             }
             root.addView(bottomWrap,FrameLayout.LayoutParams(-1,dp(53),Gravity.BOTTOM))
         }
-        if(collection!=null) {
-            val scroll=ScrollView(this); val body=column(); scroll.addView(body); container.addView(scroll,lp(-1,0).apply { weight=1f })
-            catalogGrid(body,focusNav,focusType)
-            main.post(object: Runnable {
-                override fun run() {
-                    if(isDestroyed || screen!="catalog" || collection==null) return
-                    if(resumeCards.isNotEmpty()) resumeCards.first().requestFocus()
-                }
-            })
-        } else catalogGrid(body,focusNav,focusType)
     }
     private fun catalogGrid(body: LinearLayout,focusNav: Boolean,focusType: Boolean=false,loading: Boolean=false) {
         if(tab==0 && page==1 && collection==null) { renderHome(body,focusNav,focusType,loading); return }
