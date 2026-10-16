@@ -3,6 +3,12 @@ import vm from "node:vm";
 import crypto from "node:crypto";
 import axios from "axios";
 
+import http from "node:http";
+import https from "node:https";
+
+const httpAgent = new http.Agent({ keepAlive: true, keepAliveMsecs: 30000, maxSockets: 50 });
+const httpsAgent = new https.Agent({ keepAlive: true, keepAliveMsecs: 30000, maxSockets: 50 });
+
 // Trusted, pinned GPL source. This is a compatibility wrapper, not a sandbox for user scripts.
 const source = fs.readFileSync(
   new URL("./vendor/hongguo.cjs", import.meta.url),
@@ -17,6 +23,8 @@ const context = vm.createContext({
   URL,
   URLSearchParams,
   axios: axios.create({
+    httpAgent,
+    httpsAgent,
     maxContentLength: 16 * 1024 * 1024,
     maxBodyLength: 1024 * 1024,
   }),
