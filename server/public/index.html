@@ -516,7 +516,7 @@
     .player-view {
       position: fixed;
       inset: 0;
-      background: #05070d;
+      background: #000;
       z-index: 100;
       display: none;
       flex-direction: column;
@@ -533,17 +533,18 @@
       top: 0;
       left: 0;
       right: 0;
-      z-index: 20;
+      z-index: 25;
       padding: max(12px, var(--safe-top)) 16px 12px 16px;
       background: linear-gradient(180deg, rgba(5, 7, 13, 0.9) 0%, rgba(5, 7, 13, 0.4) 70%, transparent 100%);
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
+      pointer-events: auto;
     }
 
     .player-back-btn {
-      background: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.15);
       border: 1px solid rgba(255, 255, 255, 0.1);
       color: #fff;
       width: 36px;
@@ -573,7 +574,7 @@
     }
 
     .player-fav-btn {
-      background: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.15);
       border: 1px solid rgba(255, 255, 255, 0.1);
       color: #fff;
       font-size: 0.82rem;
@@ -593,7 +594,7 @@
       box-shadow: 0 0 12px var(--primary-glow);
     }
 
-    /* 播放器核心视频区域 (竖屏 9:16 短剧优化) */
+    /* 播放器核心视频区域 (抖音上下滑交互核心) */
     .player-body {
       flex: 1;
       display: flex;
@@ -602,6 +603,7 @@
       position: relative;
       background: #000;
       overflow: hidden;
+      touch-action: pan-x;
     }
 
     .video-wrapper {
@@ -613,6 +615,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      will-change: transform, opacity;
     }
 
     video {
@@ -625,6 +628,110 @@
 
     video.fit-cover {
       object-fit: cover;
+    }
+
+    /* 抖音同款中间播放/暂停大徽标 */
+    .center-play-badge {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.6);
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 22;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .center-play-badge.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* 抖音双击冒红心点赞动效 */
+    .douyin-heart {
+      position: fixed;
+      font-size: 56px;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%) scale(0.4) rotate(0deg);
+      animation: heartPop 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      filter: drop-shadow(0 0 16px rgba(255, 45, 85, 0.8));
+    }
+
+    @keyframes heartPop {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.3) rotate(-15deg);
+      }
+      30% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.3) rotate(10deg);
+      }
+      60% {
+        opacity: 1;
+        transform: translate(-50%, -80px) scale(1.1) rotate(-8deg);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -140px) scale(0.8) rotate(5deg);
+      }
+    }
+
+    /* 上下滑动切换提示浮条 */
+    .swipe-hint-badge {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.9);
+      background: rgba(15, 21, 35, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(16px);
+      padding: 10px 22px;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 700;
+      pointer-events: none;
+      opacity: 0;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+      z-index: 30;
+      white-space: nowrap;
+    }
+
+    .swipe-hint-badge.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* 抖音同款底部精致微进度条 */
+    .douyin-progress-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.2);
+      z-index: 24;
+      cursor: pointer;
+    }
+
+    .douyin-progress-fill {
+      width: 0%;
+      height: 100%;
+      background: var(--primary-gradient);
+      box-shadow: 0 0 8px var(--primary-glow);
+      transition: width 0.1s linear;
     }
 
     /* 播放器底部浮动控制栏 (Douyin/ShortMax 风格) */
@@ -1162,7 +1269,7 @@
     </button>
   </nav>
 
-  <!-- 独立播放器沉浸视图 (竖屏短剧深度优化) -->
+  <!-- 独立播放器沉浸视图 (抖音上下滑交互核心) -->
   <div class="player-view" id="playerView">
     <!-- 顶部状态栏 -->
     <div class="player-top-bar">
@@ -1176,9 +1283,22 @@
     </div>
 
     <!-- 视频播放主体 -->
-    <div class="player-body">
-      <div class="video-wrapper">
-        <video id="videoPlayer" playsinline preload="auto" controls></video>
+    <div class="player-body" id="playerBody">
+      <div class="video-wrapper" id="videoWrapper">
+        <video id="videoPlayer" playsinline preload="auto"></video>
+        
+        <!-- 抖音播放/暂停中间大图标 -->
+        <div class="center-play-badge" id="centerPlayBadge">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="#fff"><polygon points="6 4 19 12 6 20 6 4"/></svg>
+        </div>
+
+        <!-- 抖音滑动提示浮动条 -->
+        <div class="swipe-hint-badge" id="swipeHintBadge"></div>
+
+        <!-- 抖音同款底部精致微进度条 -->
+        <div class="douyin-progress-bar" id="douyinProgressBar">
+          <div class="douyin-progress-fill" id="douyinProgressFill"></div>
+        </div>
       </div>
 
       <!-- 底部浮动控制栏 -->
@@ -1239,6 +1359,7 @@
       // 初始化
       async init() {
         this.setupVideoEvents();
+        this.setupSwipeGestures();
         try {
           await this.loadHome(1);
         } catch (err) {
@@ -1378,7 +1499,7 @@
             description: this.currentSeries.description,
             time: Date.now()
           });
-          this.toast('已加入收藏');
+          this.toast('❤️ 已加入收藏');
         }
         localStorage.setItem('hongguo_favorites', JSON.stringify(list));
         this.updateFavButton();
@@ -1627,6 +1748,195 @@
         }
       },
 
+      // 单击暂停/播放切换
+      togglePlayPause() {
+        const video = this.getVideo();
+        const badge = document.getElementById('centerPlayBadge');
+        if (!video) return;
+        if (video.paused) {
+          video.play();
+          if (badge) {
+            badge.innerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="#fff"><polygon points="6 4 19 12 6 20 6 4"/></svg>';
+            badge.classList.add('show');
+            setTimeout(() => badge.classList.remove('show'), 400);
+          }
+        } else {
+          video.pause();
+          if (badge) {
+            badge.innerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="#fff"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+            badge.classList.add('show');
+            setTimeout(() => badge.classList.remove('show'), 600);
+          }
+        }
+      },
+
+      // 抖音双击冒红心点赞动效
+      showHeartAnimation(x, y) {
+        const heart = document.createElement('div');
+        heart.className = 'douyin-heart';
+        heart.innerHTML = '❤️';
+        heart.style.left = `${x}px`;
+        heart.style.top = `${y}px`;
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 800);
+      },
+
+      // 抖音同款上下滑切换剧集核心手势
+      setupSwipeGestures() {
+        const body = document.getElementById('playerBody');
+        const wrapper = document.getElementById('videoWrapper');
+        const hint = document.getElementById('swipeHintBadge');
+        if (!body || !wrapper) return;
+
+        let startY = 0;
+        let startX = 0;
+        let currentY = 0;
+        let isSwiping = false;
+        let lastTapTime = 0;
+
+        // 触摸开始
+        body.addEventListener('touchstart', (e) => {
+          if (e.target.closest('.player-floating-bar') || e.target.closest('.player-top-bar') || e.target.closest('.episode-drawer')) return;
+          if (e.touches.length !== 1) return;
+
+          startY = e.touches[0].clientY;
+          startX = e.touches[0].clientX;
+          currentY = startY;
+          isSwiping = true;
+          wrapper.style.transition = 'none';
+        }, { passive: true });
+
+        // 触摸滑动跟踪
+        body.addEventListener('touchmove', (e) => {
+          if (!isSwiping || e.touches.length !== 1) return;
+          currentY = e.touches[0].clientY;
+          const deltaY = currentY - startY;
+          const deltaX = e.touches[0].clientX - startX;
+
+          if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 8) {
+            // 跟随手指微移，带有手感阻尼
+            const clampedY = Math.max(-130, Math.min(130, deltaY * 0.45));
+            wrapper.style.transform = `translateY(${clampedY}px)`;
+
+            if (hint) {
+              if (deltaY < -35) {
+                hint.textContent = '上滑播放下一集 ⬆️';
+                hint.classList.add('show');
+              } else if (deltaY > 35) {
+                hint.textContent = '下滑播放上一集 ⬇️';
+                hint.classList.add('show');
+              } else {
+                hint.classList.remove('show');
+              }
+            }
+          }
+        }, { passive: true });
+
+        // 触摸释放
+        body.addEventListener('touchend', (e) => {
+          if (!isSwiping) return;
+          isSwiping = false;
+          if (hint) hint.classList.remove('show');
+
+          const deltaY = currentY - startY;
+          const deltaX = (e.changedTouches[0]?.clientX || startX) - startX;
+          const distY = Math.abs(deltaY);
+          const distX = Math.abs(deltaX);
+
+          wrapper.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s';
+
+          // 判定滑动翻集 (垂直距离 > 55px)
+          if (distY > 55 && distY > distX * 1.3) {
+            if (deltaY < -55) {
+              // 上滑 -> 下一集
+              wrapper.style.transform = 'translateY(-100px)';
+              wrapper.style.opacity = '0';
+              setTimeout(() => {
+                this.playNextEpisode();
+                wrapper.style.transition = 'none';
+                wrapper.style.transform = 'translateY(100px)';
+                void wrapper.offsetWidth;
+                wrapper.style.transition = 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s';
+                wrapper.style.transform = 'translateY(0)';
+                wrapper.style.opacity = '1';
+              }, 180);
+              return;
+            } else if (deltaY > 55) {
+              // 下滑 -> 上一集
+              wrapper.style.transform = 'translateY(100px)';
+              wrapper.style.opacity = '0';
+              setTimeout(() => {
+                this.playPrevEpisode();
+                wrapper.style.transition = 'none';
+                wrapper.style.transform = 'translateY(-100px)';
+                void wrapper.offsetWidth;
+                wrapper.style.transition = 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s';
+                wrapper.style.transform = 'translateY(0)';
+                wrapper.style.opacity = '1';
+              }, 180);
+              return;
+            }
+          }
+
+          // 回弹
+          wrapper.style.transform = 'translateY(0)';
+          wrapper.style.opacity = '1';
+
+          // 点击与双击检测
+          if (distY < 12 && distX < 12) {
+            const now = Date.now();
+            if (now - lastTapTime < 300) {
+              // 双击点赞
+              this.showHeartAnimation(e.changedTouches[0]?.clientX || window.innerWidth / 2, e.changedTouches[0]?.clientY || window.innerHeight / 2);
+              if (!this.isFavorited(this.currentSeries?.id)) {
+                this.toggleFavorite();
+              }
+              lastTapTime = 0;
+            } else {
+              // 单击暂停/播放
+              lastTapTime = now;
+              setTimeout(() => {
+                if (Date.now() - lastTapTime >= 280 && lastTapTime !== 0) {
+                  this.togglePlayPause();
+                }
+              }, 280);
+            }
+          }
+        });
+
+        // PC 滚轮上下滑切集支持
+        let wheelTimer = null;
+        body.addEventListener('wheel', (e) => {
+          if (document.getElementById('episodeDrawer').classList.contains('active')) return;
+          if (wheelTimer) return;
+          if (Math.abs(e.deltaY) > 25) {
+            wheelTimer = setTimeout(() => { wheelTimer = null; }, 450);
+            if (e.deltaY > 0) {
+              this.playNextEpisode();
+            } else {
+              this.playPrevEpisode();
+            }
+          }
+        }, { passive: true });
+
+        // PC 键盘支持 (上下箭头切换分集，空格播放暂停)
+        window.addEventListener('keydown', (e) => {
+          if (!document.getElementById('playerView').classList.contains('active')) return;
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            this.playNextEpisode();
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            this.playPrevEpisode();
+          } else if (e.key === ' ') {
+            e.preventDefault();
+            this.togglePlayPause();
+          } else if (e.key === 'Escape') {
+            this.closePlayer();
+          }
+        });
+      },
+
       // 选集半屏抽屉控制
       openDrawer() {
         document.getElementById('drawerOverlay').classList.add('active');
@@ -1678,16 +1988,23 @@
         }
       },
 
-      // 视频控制与监听
+      // 视频控制与微进度条监听
       setupVideoEvents() {
         const video = this.getVideo();
         if (!video) return;
 
+        // 自动连播
         video.addEventListener('ended', () => {
           this.playNextEpisode();
         });
 
+        // 微进度条平滑推进与历史保存
         video.addEventListener('timeupdate', () => {
+          const fill = document.getElementById('douyinProgressFill');
+          if (fill && video.duration > 0) {
+            fill.style.width = `${(video.currentTime / video.duration) * 100}%`;
+          }
+
           if (!this.currentSeries || video.currentTime < 1) return;
           if (Math.floor(video.currentTime) % 5 === 0) {
             this.saveHistory({
@@ -1704,6 +2021,18 @@
             });
           }
         });
+
+        // 进度条拖拽/点击快进
+        const progressBar = document.getElementById('douyinProgressBar');
+        if (progressBar) {
+          progressBar.addEventListener('click', (e) => {
+            const rect = progressBar.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            if (video.duration) {
+              video.currentTime = pos * video.duration;
+            }
+          });
+        }
 
         // 播放失败精准诊断
         video.addEventListener('error', async () => {
