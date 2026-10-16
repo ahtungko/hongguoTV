@@ -13,6 +13,9 @@ fi
 mkdir -p "$repo_dir/outputs"
 native_version="${HONGGUOTV_VERSION_NAME:-$(sed -n 's/.*versionName = .*?: "\([^"]*\)".*/\1/p' "$repo_dir/kotlin-tv/app/build.gradle.kts")}"
 [[ "$native_version" =~ ^[0-9][0-9A-Za-z.+-]*$ ]] || { echo "Invalid APK version" >&2; exit 1; }
-native_apk="$repo_dir/outputs/hongguotv-kotlin-$native_version-android8.apk"
-cp "$repo_dir/kotlin-tv/app/build/outputs/apk/release/app-release.apk" "$native_apk"
-if command -v shasum >/dev/null; then shasum -a 256 "$native_apk"; else sha256sum "$native_apk"; fi
+tv_apk="$repo_dir/outputs/hongguotv-tv-$native_version.apk"
+mobile_apk="$repo_dir/outputs/hongguotv-mobile-$native_version.apk"
+find "$repo_dir/kotlin-tv/app/build/outputs/apk" -name "*tv*.apk" -exec cp {} "$tv_apk" \; 2>/dev/null || true
+find "$repo_dir/kotlin-tv/app/build/outputs/apk" -name "*mobile*.apk" -exec cp {} "$mobile_apk" \; 2>/dev/null || true
+echo "Built APKs:"
+ls -lh "$repo_dir/outputs"/*.apk 2>/dev/null || true

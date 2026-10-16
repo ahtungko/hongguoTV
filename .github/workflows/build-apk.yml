@@ -1,0 +1,58 @@
+name: Build Android APKs (TV & Mobile)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'kotlin-tv/**'
+      - 'scripts/build-kotlin.sh'
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build TV and Mobile APKs
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Install Android 36 SDK
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+
+      - name: Make Gradlew executable
+        run: chmod +x ./kotlin-tv/gradlew
+
+      - name: Compile and Build APKs
+        run: |
+          ./kotlin-tv/gradlew -p kotlin-tv :core:test :app:assembleTvDebug :app:assembleMobileDebug --console=plain
+
+      - name: Organize Artifacts
+        run: |
+          mkdir -p outputs/apks
+          find kotlin-tv/app/build/outputs/apk/tv -name "*.apk" -exec cp {} outputs/apks/HongguoTV-TV.apk \;
+          find kotlin-tv/app/build/outputs/apk/mobile -name "*.apk" -exec cp {} outputs/apks/HongguoTV-Mobile.apk \;
+          ls -lh outputs/apks/
+
+      - name: Upload APKs as Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: HongguoTV-Android-APKs
+          path: outputs/apks/*.apk
+          retention-days: 30

@@ -15,6 +15,20 @@ android {
         versionName = System.getenv("HONGGUOTV_VERSION_NAME") ?: "0.9.0"
     }
     buildFeatures { buildConfig = true }
+    flavorDimensions += "device"
+    productFlavors {
+        create("tv") {
+            dimension = "device"
+            manifestPlaceholders["appLabel"] = "红果 TV 原生版"
+            manifestPlaceholders["screenOrientation"] = "landscape"
+        }
+        create("mobile") {
+            dimension = "device"
+            applicationIdSuffix = ".mobile"
+            manifestPlaceholders["appLabel"] = "红果短剧 (手机/平板版)"
+            manifestPlaceholders["screenOrientation"] = "user"
+        }
+    }
     signingConfigs {
         create("delivery") {
             storeFile = signingValue("HONGGUOTV_KEYSTORE", "storeFile")?.let { file(it) }
@@ -23,7 +37,14 @@ android {
             keyPassword = signingValue("HONGGUOTV_KEY_PASSWORD", "keyPassword")
         }
     }
-    buildTypes { getByName("release") { signingConfig = signingConfigs.getByName("delivery"); isMinifyEnabled = true; proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro") } }
+    buildTypes {
+        getByName("release") {
+            val delivery = signingConfigs.getByName("delivery")
+            signingConfig = if (delivery.storeFile != null) delivery else signingConfigs.getByName("debug")
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+    }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17; isCoreLibraryDesugaringEnabled = true }
     kotlinOptions { jvmTarget = "17" }
     packaging { resources.excludes += setOf("META-INF/versions/**", "META-INF/*.kotlin_module") }
