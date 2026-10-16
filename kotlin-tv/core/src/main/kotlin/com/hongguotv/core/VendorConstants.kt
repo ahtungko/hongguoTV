@@ -5,9 +5,13 @@ internal object VendorConstants {
     const val VIDEO_UA = "com.phoenix.read/71332 (Linux; U; Android 16; zh_CN; 25053RT47C; Build/BP2A.250605.031.A3; Cronet/TTNetVersion:04657795 2026-01-23 QuicVersion:c67e9834 2025-09-08)"
     const val APP_UA = "com.phoenix.read/72232 (Linux; U; Android 16; zh_CN; 25053RT47C; Build/BP2A.250605.031.A3)"
     private fun randomId() = (1000000000000000L + (Math.random() * 8999999999999999L).toLong()).toString()
+    private val sessionIid = randomId()
+    private val sessionDeviceId = randomId()
+    var overrideIid: String? = null
+    var overrideDeviceId: String? = null
     val device get() = linkedMapOf(
-        "iid" to randomId(),
-        "device_id" to randomId(),
+        "iid" to (overrideIid ?: sessionIid),
+        "device_id" to (overrideDeviceId ?: sessionDeviceId),
         "ac" to "wifi",
         "channel" to "update_64",
         "aid" to "8662",

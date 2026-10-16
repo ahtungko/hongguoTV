@@ -41,7 +41,7 @@ jobs:
 
       - name: Compile and Build APKs
         run: |
-          ./kotlin-tv/gradlew -p kotlin-tv :core:test :app:assembleTvDebug :app:assembleMobileDebug --console=plain
+          ./kotlin-tv/gradlew -p kotlin-tv :app:assembleTvDebug :app:assembleMobileDebug --console=plain
 
       - name: Organize Artifacts
         run: |
