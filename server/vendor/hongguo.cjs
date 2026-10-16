@@ -313,7 +313,44 @@ async function appSearchPage(keyword, tabType, page = 1, limit = 20) {
 // ---------- 字节系签名算法（实测黑盒，勿改常量/位序） ----------
 
 function md5(value) { return crypto.createHash('md5').update(value).digest('hex').toUpperCase(); }
-function sm3(value) { return crypto.createHash('sm3').update(value).digest(); }
+function sm3Pure(data) {
+    const bytes = Buffer.isBuffer(data) ? data : Buffer.from(data);
+    const bitLen = bytes.length * 8;
+    const k = (56 - (bytes.length + 1) % 64 + 64) % 64;
+    const padding = Buffer.alloc(1 + k + 8);
+    padding[0] = 0x80;
+    padding.writeBigUInt64BE(BigInt(bitLen), 1 + k);
+    const msg = Buffer.concat([bytes, padding]);
+    let V = [0x7380166f, 0x4914b2b9, 0x172442d7, 0xda8a0600, 0xa96f30bc, 0x163138aa, 0xe38dee4d, 0xb0fb0e4e];
+    const rol = (x, n) => ((x << (n & 31)) | (x >>> (32 - (n & 31)))) >>> 0;
+    const P0 = (x) => (x ^ rol(x, 9) ^ rol(x, 17)) >>> 0;
+    const P1 = (x) => (x ^ rol(x, 15) ^ rol(x, 23)) >>> 0;
+    const FF = (j, x, y, z) => (j <= 15 ? (x ^ y ^ z) : ((x & y) | (x & z) | (y & z))) >>> 0;
+    const GG = (j, x, y, z) => (j <= 15 ? (x ^ y ^ z) : ((x & y) | ((~x) & z))) >>> 0;
+    const T = (j) => (j <= 15 ? 0x79cc4519 : 0x7a879d8a);
+    const W = new Uint32Array(68); const W1 = new Uint32Array(64);
+    for (let offset = 0; offset < msg.length; offset += 64) {
+        for (let i = 0; i < 16; i += 1) W[i] = msg.readUInt32BE(offset + i * 4);
+        for (let j = 16; j < 68; j += 1) W[j] = (P1(W[j - 16] ^ W[j - 9] ^ rol(W[j - 3], 15)) ^ rol(W[j - 13], 7) ^ W[j - 6]) >>> 0;
+        for (let j = 0; j < 64; j += 1) W1[j] = (W[j] ^ W[j + 4]) >>> 0;
+        let [A, B, C, D, E, F, G, H] = V;
+        for (let j = 0; j < 64; j += 1) {
+            const SS1 = rol((rol(A, 12) + E + rol(T(j), j % 32)) >>> 0, 7);
+            const SS2 = (SS1 ^ rol(A, 12)) >>> 0;
+            const TT1 = (FF(j, A, B, C) + D + SS2 + W1[j]) >>> 0;
+            const TT2 = (GG(j, E, F, G) + H + SS1 + W[j]) >>> 0;
+            D = C; C = rol(B, 9); B = A; A = TT1; H = G; G = rol(F, 19); F = E; E = P0(TT2);
+        }
+        V = [(V[0] ^ A) >>> 0, (V[1] ^ B) >>> 0, (V[2] ^ C) >>> 0, (V[3] ^ D) >>> 0, (V[4] ^ E) >>> 0, (V[5] ^ F) >>> 0, (V[6] ^ G) >>> 0, (V[7] ^ H) >>> 0];
+    }
+    const out = Buffer.alloc(32);
+    for (let i = 0; i < 8; i += 1) out.writeUInt32BE(V[i], i * 4);
+    return out;
+}
+function sm3(value) {
+    try { return crypto.createHash('sm3').update(value).digest(); }
+    catch { return sm3Pure(value); }
+}
 function u32(value) { return Number(value) >>> 0; }
 function rol32(value, count) { const n = count & 31; const x = u32(value); return u32((x << n) | (x >>> (32 - n))); }
 function ror32(value, count) { const n = count & 31; const x = u32(value); return u32((x >>> n) | (x << (32 - n))); }
