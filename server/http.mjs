@@ -170,7 +170,8 @@ export function createRequestHandler(provider, token = "") {
           contentType: "video/mp4",
         });
       }
-      if (activeStreams >= 4)
+      const maxStreams = Number(process.env.MAX_STREAMS || 20);
+      if (activeStreams >= maxStreams)
         return json(503, { error: "同时播放数已达上限，请稍后重试" });
       activeStreams++;
       try {
